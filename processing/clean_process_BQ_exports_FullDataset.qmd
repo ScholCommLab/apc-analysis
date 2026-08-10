@@ -1,0 +1,415 @@
+---
+title: "Understand BQ exports"
+author: "Eric Schares"
+format: html
+editor: visual
+---
+
+# Process BQ Exports - Gold and Hybrid Journals, using Full APC Dataset, v2
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(scales)
+```
+
+```{r}
+here::here()
+getwd()
+```
+
+## Load GBQ export data
+
+```{r}
+data <- read_csv('BQ_export_Walden_fullAPCdataset_v5_297167rows.csv')
+
+head(data)
+```
+
+```{r}
+str(data)
+```
+
+Full dataset export returns 12,348 distinct unique_IDs
+
+```{r}
+n_distinct(data$unique_ID)
+```
+
+```{r}
+ggplot(filter(data, oa_type=='ALL'), aes(x=year, y=DOIs)) + 
+  geom_col() +
+  #scale_y_continuous(labels = comma, breaks = c(0, 25000, 50000, 75000, 100000, 125000, 150000))
+  scale_y_continuous(labels = comma) +
+  labs(title = 'Number of DOIs by Year')
+```
+
+```{r}
+data |> 
+  filter(oa_type == 'ALL') |> 
+  group_by(year) |> 
+  summarize(DOIs = sum(DOIs))
+```
+
+## Convert GBQ output from long to wide format. One journal-year per row with OA status breakdowns in the columns
+
+```{r}
+data_wide <- data |> 
+  pivot_wider(id_cols = c('ISSN_L','year'),
+                         names_from = oa_type,
+                         values_from = DOIs,
+                         values_fill = 0,   # fill missing cells with 0
+                         values_fn = first) # if there are duplicate ISSN_L-years, keep the first one
+
+view(data_wide)
+```
+
+```{r}
+# How many observations of an ISSN do we have? Should be 7 (2019-2025)
+data_wide |> 
+  count(ISSN_L, sort = TRUE)
+```
+
+### Construct and plot new columns of `APC-able` documents
+
+```{r}
+data_wide <- data_wide |> 
+  mutate(goldANDdiamond = gold + diamond) |> 
+  mutate(goldDiamondHybrid = gold + diamond + hybrid)
+```
+
+ISSN-years that lie along the red 45' line have all their results as Gold, Diamond, or Hybrid
+
+Those at the bottom have Green, Bronze, or Closed
+
+```{r}
+ggplot(data_wide, aes(x=ALL, y=goldDiamondHybrid)) + 
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1, col = 'red', linetype = 'dashed') +
+  labs(title = 'OA type breakdown for each journal-year combination',
+       x = 'All articles',
+       y = 'Gold + Diamond+ Hybrid articles')
+```
+
+## Make the delta column
+
+```{r}
+with_delta <- data_wide |> 
+  mutate(delta = ALL - goldDiamondHybrid) |> 
+  arrange(desc(delta))
+```
+
+## Prepeare to filter down journal pub counts to what's in the APC Dataset
+
+```{r}
+with_delta <- with_delta |> 
+  mutate(issn_year = paste(ISSN_L, year, sep='_'))
+
+head(with_delta)
+```
+
+## Load the APC Dataset, v2
+
+```{r}
+# csv version
+apc_dataset <- read_csv('apc_list_2025_5_analysis_v5_with_flatfees.csv') |> 
+  select(journal_normalized, issn_l, publisher, oa_status, apc_year, apc_usd) |> 
+  mutate(issn_year = paste(issn_l, apc_year, sep='_'))
+head(apc_dataset)
+str(apc_dataset)
+
+```
+
+### Filter down to dataset coverage
+
+```{r}
+with_delta <- with_delta %>%
+  mutate(flag = if_else(
+    issn_year %in% apc_dataset$issn_year, 
+    1, 
+    0
+  ))
+
+with_delta <- with_delta |> 
+  filter(flag == 1)
+
+head(with_delta)
+```
+
+## Combine with APC dataset, bring in APC values
+
+```{r}
+combined <- left_join(with_delta, apc_dataset, by = join_by('issn_year'))
+combined
+```
+
+```{r}
+# change NA to 0 in APC prices
+combined$apc_usd <- as.numeric(as.character(combined$apc_usd))   # first convert apc_usd from character to numeric
+combined$apc_usd[is.na(combined$apc_usd)] <- 0
+
+combined
+```
+
+Calculate APC-able volume \* APC
+
+```{r}
+combined <- combined |> 
+  mutate(volumeXapc = goldDiamondHybrid * apc_usd)
+combined
+```
+
+```{r}
+#write.csv(combined, '12348_Gold&Hybrid_Walden_with_delta_filteredtoAPCdataset_withflatfees_and_APCs.csv', row.names=FALSE)
+
+#combined <- read.csv('12348_Gold&Hybrid_Walden_with_delta_filteredtoAPCdataset_withflatfees_and_APCs.csv')
+```
+
+```{r}
+combined |> 
+  filter(oa_status == 'Gold OA', 
+         ALL > 0
+         ) |> 
+  summarize('Gold OA with at least 1 article' = n(),
+            'Article count' = sum(goldDiamondHybrid))
+```
+
+```{r}
+combined |> 
+  filter(oa_status == 'Hybrid OA', 
+         ALL > 0
+         ) |> 
+  summarize('Hybrid OA with at least 1 article' = n(),
+            'Article count' = sum(goldDiamondHybrid))
+```
+
+```{r}
+combined |> 
+  filter(oa_status == 'Hybrid OA', 
+         ALL > 0,
+         goldDiamondHybrid > 0
+         ) |> 
+  summarize('Hybrid OA with at least 1 APC-able article' = n(),
+            'Article count' = sum(goldDiamondHybrid))
+```
+
+```{r}
+  ggplot(combined, aes(x=volumeXapc, y=apc_usd, color=as_factor(year))) + 
+    geom_point() +
+    labs(title = 'Volume vs. APC price, 12348 Gold&Hybrid journals, all years',
+         x = 'Volume X APC ($)',
+         y = 'APC ($)') +
+  scale_x_continuous(labels = comma)
+  #facet_wrap(~oa_status)
+
+```
+
+```{r}
+  ggplot(filter(combined, apc_year==2025), aes(x=goldDiamondHybrid, y=apc_usd, color=as_factor(publisher))) + 
+    geom_point() +
+    labs(title = 'Volume vs. APC price, Gold&Hybrid journals, 2025 only',
+         x = 'Volume (num pubs), log10',
+         y = 'APC ($)') +
+  scale_x_continuous(labels = comma, transform = 'log10') +
+  facet_wrap(~oa_status)
+
+```
+
+```{r}
+fig <- ggplot(combined, aes(fill = publisher, x = apc_year, y = volumeXapc)) + 
+  geom_bar(position = 'stack', stat = 'identity') + 
+  scale_y_continuous(labels = scales::unit_format(unit = "B", scale = 1e-9)) +
+  #scale_y_continuous(labels = label_number(scale = 1e-9, suffix = 'B')) +      # could also do
+  
+  scale_x_continuous(breaks=seq(2019, 2025, 1)) + 
+  labs(title = '12348 journals, OpenAlex Walden',
+       y = 'USD ($)',
+       x = 'Year')
+
+fig
+
+ggsave(plot = fig, filename = "Stacked_bar_chart_by_publisher_year.png")
+```
+
+------------------------------------------------------------------------
+
+### Look at OA_status growth of \$ and volume, all Publishers combined
+
+```{r}
+overall <- combined |> 
+  group_by(oa_status, apc_year) |> 
+  summarize(sum = sum(volumeXapc),
+            APCable = sum(goldDiamondHybrid),
+            .groups = 'drop') |> 
+  mutate(avgAPC = sum / APCable)
+
+overall
+```
+
+#### OA_status publication volume growth, 2019-2025
+
+```{r}
+overall |> 
+  filter(apc_year == 2019 | apc_year == 2025) |> 
+  pivot_wider(id_cols = c(oa_status),
+              names_from = 'apc_year',
+              names_prefix = 'year_',
+              values_from = 'APCable') |> 
+  mutate(
+    growth_multiplier = round(year_2025 / year_2019, 5),
+    growth_percentage = ((year_2025 - year_2019) / year_2019) * 100
+  )
+```
+
+#### Publication volume growth by publisher, all OA statuses together
+
+```{r}
+combined |> 
+  filter(apc_year == 2019 | apc_year == 2025) |> 
+  group_by(publisher, apc_year) |> 
+  
+  summarize(sum = sum(volumeXapc),
+            APCable = sum(goldDiamondHybrid),
+            .groups = 'drop') |> 
+  
+  pivot_wider(id_cols = c(publisher),
+              names_from = 'apc_year',
+              names_prefix = 'year_',
+              values_from = 'APCable') |> 
+  
+  mutate(
+    growth_multiplier = round(year_2025 / year_2019, 5),
+    growth_percentage = ((year_2025 - year_2019) / year_2019) * 100
+  )
+```
+
+```{r}
+combined |> 
+  filter(publisher == 'WILEY') |> 
+  group_by(publisher, oa_status, apc_year) |> 
+  
+  
+  summarize(sum = sum(volumeXapc),
+            APCable = sum(goldDiamondHybrid),
+            .groups = 'drop') |> 
+  
+  ggplot(aes(x = apc_year, y = sum)) + 
+    geom_point(aes(color = oa_status)) + 
+  labs(title = 'Wiley spend amount over years')
+  
+
+  
+```
+
+### Spend (\$) growth by Publisher, year, and OA status
+
+```{r}
+grouped_summary <- combined |> 
+  group_by(publisher, oa_status, apc_year) |> 
+  summarize(sum = sum(volumeXapc),
+            APCable = sum(goldDiamondHybrid),
+            .groups = 'drop') |> 
+  mutate(avgAPC = sum / APCable)
+
+grouped_summary
+
+write.csv(grouped_summary, '12348_journals_bypublisher_withflatfees_money_summary.csv', row.names=FALSE)
+```
+
+### Spend (\$) growth by year and OA status, all publishers together
+
+```{r}
+# by  year and oa_status breakdown, Table 2
+grouped_summary |> 
+  group_by(apc_year, oa_status) |> 
+  summarize(estimate = round(sum(sum)/1e6,2)) |>    # in Millions
+  #mutate(estimate = num(estimate, sigfig = 5, notation = "si"))
+  as.tibble()
+```
+
+### Spend (\$) sum by OA status, all publishers and years together
+
+```{r}
+# by oa_status breakdown, sum of all years
+grouped_summary |> 
+  group_by(oa_status) |> 
+  summarize(estimate = round(sum(sum)/1e6,2)) |>    # in Millions
+  #mutate(estimate = num(estimate, sigfig = 5, notation = "si"))
+  as.tibble()
+```
+
+## By Year Summary, all publishers and oa_status together
+
+```{r}
+combined |> 
+  group_by(apc_year, oa_status) |> 
+  summarize(sum_in_M_USD = sum(volumeXapc) / 1e6,
+            .groups = 'drop')
+```
+
+## Growth percentages of article output from 2019-2025 by publisher and oa_status
+
+```{r}
+df_growth <- grouped_summary |> 
+  filter(apc_year == 2019 | apc_year == 2025) |> 
+  pivot_wider(id_cols = c(publisher, oa_status),
+              names_from = 'apc_year',
+              names_prefix = 'year_',
+              values_from = 'APCable') |> 
+  mutate(
+    growth_multiplier = round(year_2025 / year_2019, 5),
+    growth_percentage = ((year_2025 - year_2019) / year_2019) * 100
+  )
+
+df_growth
+
+```
+
+## Article output summary by publisher, year, and oa_status
+
+```{r}
+df_article_summary <- combined |> 
+  group_by(publisher, apc_year, oa_status) |> 
+  
+  summarize(APCable = sum(goldDiamondHybrid),
+            .groups = 'drop') |> 
+  
+  pivot_wider(id_cols = c(publisher, apc_year),
+              names_from = 'oa_status',
+              #names_prefix = 'year_',
+              values_from = 'APCable', 
+              values_fill = 0)
+  
+
+  # mutate(
+  #   growth_multiplier = round(year_2025 / year_2019, 5),
+  #   growth_percentage = ((year_2025 - year_2019) / year_2019) * 100
+  # )
+
+df_article_summary
+
+#write.csv(df_article_summary, 'article_counts_by_publisher_year_OAtype.csv', row.names=FALSE)
+
+```
+
+```{r}
+# Calculate YoY percentage increase
+df_article_summary |>
+  
+  # sort years first so lag() pulls the true prior year.
+  arrange(publisher, apc_year) |> 
+  group_by(publisher) |> 
+  
+  # lag() looks at row directly above the current one
+  mutate(
+    `Gold OA YoY %`   = (`Gold OA` - lag(`Gold OA`)) / lag(`Gold OA`) * 100,
+    `Gold OA YoY multiplier`   = (`Gold OA` / lag(`Gold OA`)),
+    
+    `Hybrid OA YoY %` = (`Hybrid OA` - lag(`Hybrid OA`)) / lag(`Hybrid OA`) * 100,
+    `Hybrid OA YoY multiplier` = (`Hybrid OA` / lag(`Hybrid OA`))
+  ) |> 
+  
+  ungroup() |> 
+  
+  write.csv('article_counts_by_publisher_year_OAtype_withpercents.csv', row.names=FALSE)
+```
