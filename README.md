@@ -37,7 +37,7 @@ This analysis combines two inputs — annual APC list prices (dataset above) and
 - `apc_list_2025_5_analysis_copy.csv` — the analysis copy of the APC dataset (Matthias et al., 2026), which differs from the publicly available list-price dataset in the assumptions applied to non-flat-rate fees, as documented in the paper.
 
 **`processing/`**
-- R code used to process the raw BigQuery export into the merged dataset used in analysis.
+- `clean_process_BQ_exports_FullDataset.qmd` - R code used to process the raw BigQuery export into the merged dataset used in analysis.
 
 **`data/`**
 - `12348_Gold&Hybrid_Walden_with_delta_filteredtoAPCdataset_withflatfees_and_APCs.csv` — the processed BigQuery export, merged on ISSN-L and year to match the APC dataset.
