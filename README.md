@@ -2,15 +2,15 @@
 
 This open source repository holds the data and code underlying:
 
-Lisa Matthias, Schares, E., Alperin, J. P., Butler, L.-A., Kuang, S., Schönfelder, N., & Haustein, S. 2026. *Estimating global article processing charges paid to 14 publishers for open access between 2019 and 2025*. [preprint link, once available]
+> Lisa Matthias, Schares, E., Alperin, J. P., Butler, L.-A., Kuang, S., Schönfelder, N., & Haustein, S. 2026. *Estimating global article processing charges paid to 14 publishers for open access between 2019 and 2025*. [preprint link, once available]
 
 Computational analysis was done with R.
 
 The underlying article processing charge (APC) price list data is available to download and described in a companion data paper:
 
-Matthias, L., Chavarro, D., Schares, E., Alperin, J. P., Rose, M., Frost, M., Camargo, F., Höfting, J., Butler, L.-A., Schönfelder, N., & Haustein, S. (2026). A dataset of article processing charges from 14 scholarly publishers, 2019–2025 [Data set]. Harvard Dataverse. doi: 10.7910/DVN/AZ985C
+> Matthias, L., Chavarro, D., Schares, E., Alperin, J. P., Rose, M., Frost, M., Camargo, F., Höfting, J., Butler, L.-A., Schönfelder, N., & Haustein, S. (2026). A dataset of article processing charges from 14 scholarly publishers, 2019–2025 [Data set]. Harvard Dataverse. doi: 10.7910/DVN/AZ985C
 
-Matthias, L., Chavarro, D., Schares, E., Alperin, J. P., Rose, M., Frost, M., Camargo, F., Höfting, J., Butler, L.-A., Schönfelder, N., & Haustein, S. (2026). A dataset of article processing charges from 14 scholarly publishers, 2019–2025. [DOI]
+> Matthias, L., Chavarro, D., Schares, E., Alperin, J. P., Rose, M., Frost, M., Camargo, F., Höfting, J., Butler, L.-A., Schönfelder, N., & Haustein, S. (2026). A dataset of article processing charges from 14 scholarly publishers, 2019–2025. [DOI]
 
 ---
 
@@ -33,7 +33,7 @@ This analysis combines two inputs — annual APC list prices (dataset above) and
 - `extract_article_counts_openalex_gbq.sql` — query used to extract article counts by journal-year from the OpenAlex Walden snapshot in Google BigQuery.
 
 **`raw_data/`**
-- Raw BigQuery export file(s), prior to processing.
+- `BQ_export_Walden_fullAPCdataset_v5_297167rows.csv` - raw BigQuery export file(s), prior to processing.
 - `apc_list_2025_5_analysis_copy.csv` — the analysis copy of the APC dataset (Matthias et al., 2026), which differs from the publicly available list-price dataset in the assumptions applied to non-flat-rate fees, as documented in the paper.
 
 **`processing/`**
