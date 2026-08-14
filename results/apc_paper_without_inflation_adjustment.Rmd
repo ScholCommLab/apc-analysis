@@ -1,0 +1,623 @@
+---
+title: "roara_apc_paper_without_inflation_adjustment"
+author: "Lisa Matthias"
+date: "2026-07-29"
+output: github_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      collapse = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+```
+
+```{r main-data, include=FALSE}
+apc_raw <- read_csv("./raw_data/apc_list_2025_5_analysis_copy.csv")
+
+apc_aggregate <- read_csv("./data/12348_journals_bypublisher_withflatfees_money_summary.csv")
+
+journals_pub_counts_apc <- read_csv(
+  "./data/12348_Gold&Hybrid_Walden_with_delta_filteredtoAPCdataset_withflatfees_and_APCs.csv"
+)
+```
+
+```{r colors, include=FALSE}
+# Palette OA Types
+pal_oa_types <- c("Gold OA" = "#D6A94E", "Hybrid OA" = "#B85428")
+
+# Palette Publishers
+pal_top5 <- c(
+  "Elsevier"        = "#ff7f0f",  
+  "Springer Nature" = "#00316e",   
+  "MDPI"            = "#697754",   
+  "Wiley"           = "#b680bf",   
+  "Frontiers"       = "#069494"    
+)
+
+pal_other <- c(
+  "OUP"        = "#205f4b", 
+  "ACS"        = "#7B7BE8",
+  "PLOS"       = "#7e1a2f",
+  "CUP"        = "#ee8577",
+  "IOP"        = "#4A8FBF",
+  "Sage"       = "#B3B177",
+  "IEEE"       = "#2E4057",
+  "De Gruyter" = "#a06177",
+  "EDP"        = "#D58E40"
+)
+```
+
+The main text of our manuscript reports APC spend and revenue figures adjusted for inflation to 2025 USD using CPI Advanced Economies (see Methods). This supplement provides the corresponding unadjusted, nominal figures—the actual list-price values for each year, without adjustment. Table and figure numbers below correspond to their inflation-adjusted counterparts in the main text.
+
+### Figure S2.2 Estimate of annual APC spend (in USD) per OA type
+
+```{r figS2-2-apc-spend-gold-hybrid-chicklet-no-adjustment,echo=FALSE, fig.dpi=300}
+library(ggchicklet)   
+library(scales)
+library(ggtext)
+
+df_spend_by_publisher_oa_type <- apc_aggregate %>%
+  filter(oa_status %in% c("Gold OA", "Hybrid OA")) 
+
+# Total revenue per year, per OA type (summed across all publishers)
+df_year_oa_type <- df_spend_by_publisher_oa_type %>%
+  group_by(apc_year, oa_status) %>%
+  summarise(total = sum(sum, na.rm = TRUE), .groups = "drop")
+
+# Lock stacking order explicitly: Gold OA bottom, Hybrid OA top
+df_year_oa_type <- df_year_oa_type %>%
+  mutate(oa_status = factor(oa_status, levels = c("Gold OA", "Hybrid OA")))
+
+# Compute cumulative stack positions manually so labels can be placed precisely
+df_year_oa_type <- df_year_oa_type %>%
+  arrange(apc_year, oa_status) %>%
+  group_by(apc_year) %>%
+  mutate(
+    ymax        = cumsum(total),
+    ymin        = ymax - total,
+    grand_total_bar = sum(total),
+    seg_share   = total / grand_total_bar
+  ) %>%
+  ungroup()
+
+df_year_oa_type <- df_year_oa_type %>%
+  mutate(is_thin = seg_share < 0.12)
+
+# Custom label: one decimal for billions, whole numbers for millions
+format_mixed <- function(x) {
+  if_else(
+    x >= 1e9,
+    paste0("$", round(x / 1e9, 1), "B"),
+    paste0("$", round(x / 1e6, 0), "M")
+  )
+}
+
+# Endpoint labels: total per segment, placed inside/at top of each chicklet
+df_year_oa_type <- df_year_oa_type %>%
+  mutate(label = format_mixed(total))
+
+# Grand total per year (for the overall annotation above each bar)
+df_total <- df_year_oa_type %>%
+  group_by(apc_year) %>%
+  summarise(grand_total = sum(total, na.rm = TRUE)) %>%
+  mutate(label = format_mixed(grand_total))
+
+# Plot
+ggplot(df_year_oa_type, aes(x = factor(apc_year), y = total, fill = oa_status)) +
+  geom_chicklet(
+    radius = grid::unit(3, "pt"),
+    width = 0.7
+  ) +
+  geom_text(
+    aes(label = label, y = (ymin + ymax) / 2, vjust = if_else(is_thin, 0.7, 0.5)),
+    color = "white", fontface = "bold", size = 3.4
+  ) +
+  geom_text(
+    data = df_total,
+    aes(x = factor(apc_year), y = grand_total, label = label),
+    inherit.aes = FALSE,
+    vjust = -0.6, fontface = "bold", size = 4, color = "black"
+  ) +
+  scale_fill_manual(values = pal_oa_types, name = NULL) +
+  scale_y_continuous(
+    labels = label_number(scale_cut = cut_short_scale(), prefix = "$"),
+    expand = expansion(mult = c(0, 0.12))
+  ) +
+  labs(
+    title = "Estimate of annual APC spend (in USD) by OA type",
+    caption = "Some publishers are not covered in every year (De Gruyter and OUP begin in 2021, IOP is missing 2020, and Sage's 2019 and 2025 data are gold-only and hybrid-only respectively).",
+    x = NULL, y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor    = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.text.x  = element_text(size = 12, face = "bold", color = "black"),
+    axis.text.y  = element_blank(),
+    axis.line.x.bottom  = element_line(color = "black", linewidth = 0.4),
+    legend.position = "top",
+    legend.justification = "left",
+    plot.title    = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(color = "black", size = 11),
+    plot.caption = element_textbox_simple(
+      size = 9,
+      color = "black",
+      lineheight = 1.3,
+      margin = margin(t = 12)
+    )
+  )
+
+ggsave("figures/figS2_2_apc_spend_chicklet_not_adjusted.png", width = 7, height = 5, dpi = 300, bg = "white")
+```
+
+## Publishers
+
+```{r function-clean-publisher-labels,echo=FALSE}
+# Clean publisher labels
+clean_label <- function(x) {
+  x %>%
+    str_replace_all("_", " ") %>%
+    str_to_title() %>%
+    str_replace("Acs", "ACS") %>%
+    str_replace("Cambridge University Press - Cup", "CUP") %>%
+    str_replace("Edp", "EDP") %>%
+    str_replace("Ieee", "IEEE") %>%
+    str_replace("Iop", "IOP") %>%
+    str_replace("Mdpi", "MDPI") %>%
+    str_replace("Oup", "OUP") %>%
+    str_replace("Plos", "PLOS")
+}
+```
+
+```{r figS2-3-plot-function,echo=FALSE}
+make_fig3 <- function(data, ends_data, title, y_breaks, pal, use_repel = TRUE) {
+  lab_layer <- if (use_repel) {
+    geom_text_repel(
+      data = ends_data,
+      aes(x = x_lab, y = revenue_m, label = lab),
+      hjust              = 0,
+      direction          = "y",
+      size               = 3.1,
+      fontface           = "bold",
+      segment.colour     = "grey75",
+      segment.size       = 0.25,
+      min.segment.length = 0.4,
+      box.padding        = 0.25,
+      show.legend        = FALSE
+    )
+  } else {
+    geom_text(
+      data = ends_data,
+      aes(x = x_lab, y = revenue_m, label = lab),
+      hjust       = 0,
+      size        = 3.1,
+      fontface    = "bold",
+      show.legend = FALSE
+    )
+  }
+
+  ggplot(data, aes(apc_year, revenue_m, colour = publisher)) +
+
+    # hand-drawn gridlines: stop at 2025, don't run into the label gutter
+    geom_segment(
+      data = tibble(y = y_breaks),
+      aes(x = 2019, xend = 2025, y = y, yend = y),
+      inherit.aes = FALSE,
+      colour = "grey92", linewidth = 0.4
+    ) +
+
+    geom_line(linewidth = 0.9) +
+    geom_point(size = 1.6) +
+    lab_layer +
+
+    scale_x_continuous(
+      breaks = 2019:2025,
+      expand = expansion(mult = c(0.03, 0.42))   # gutter for the labels
+    ) +
+    scale_y_continuous(
+      breaks = y_breaks,
+      labels = label_dollar(suffix = "M", big.mark = ",", accuracy = 1),
+      expand = expansion(mult = c(0.05, 0.08))
+    ) +
+    scale_colour_manual(values = pal, drop = TRUE) +
+    labs(title = title, x = NULL, y = NULL) +
+    theme_minimal(base_size = 12) +
+    theme(
+      legend.position = "none",
+      panel.grid      = element_blank(),
+      plot.title      = element_text(face = "bold", size = 12,
+                                     margin = margin(b = 6))
+    )
+}
+```
+
+### Figure S2.3 Estimate of annual APC spend (in USD) by publisher.
+
+```{r figS2-3-publishers-apc-spend,echo=FALSE,fig.width = 6.5, fig.height = 7.5, fig.dpi=300}
+library(scales)
+library(patchwork)
+library(ggrepel)
+
+# Data 
+rev_by_pub <- apc_aggregate %>%
+  filter(oa_status %in% c("Gold OA", "Hybrid OA")) %>%
+  group_by(publisher, apc_year) %>%
+  summarise(revenue_m = sum(sum, na.rm = TRUE) / 1e6, .groups = "drop") %>%
+  mutate(publisher = clean_label(publisher)) %>%
+  filter(!(publisher == "IOP" & apc_year == 2020)) # no data for 2020
+
+# Rank publishers by total revenue across all years
+top5 <- rev_by_pub %>%
+  group_by(publisher) %>%
+  summarise(tot = sum(revenue_m), .groups = "drop") %>%
+  slice_max(tot, n = 5) %>%
+  pull(publisher)
+
+rev_by_pub <- rev_by_pub %>%
+  mutate(group = if_else(publisher %in% top5, "Top 5 publishers", "Other publishers"))
+
+# End-of-line labels, pinned just right of the last data point
+ends <- rev_by_pub %>%
+  group_by(publisher, group) %>%
+  filter(apc_year == max(apc_year)) %>%
+  ungroup() %>%
+  mutate(
+    lab = paste0(publisher, "  $",
+                 formatC(round(revenue_m), format = "d", big.mark = ","),
+                 "M"),
+    x_lab = 2025.25
+  )
+
+# Plot 
+p_top5 <- make_fig3(
+  filter(rev_by_pub, group == "Top 5 publishers"),
+  filter(ends,       group == "Top 5 publishers"),
+  "Top 5 publishers",
+  y_breaks  = seq(0, 1000, by = 250),
+  pal       = pal_top5,
+  use_repel = FALSE
+)
+
+p_next9 <- make_fig3(
+  filter(rev_by_pub, group == "Other publishers"),
+  filter(ends,       group == "Other publishers"),
+  "Next 9 publishers",
+  y_breaks  = seq(0, 120, by = 30),
+  pal = pal_other,
+  use_repel = TRUE
+)
+
+publishers_apc_spend_total_not_adjusted <- p_top5 / p_next9 +
+  plot_annotation(
+    title    = "Estimate of annual APC spend (in USD) by publisher",
+    caption = "Sage's 2019 and 2025 figures reflect gold-only and hybrid-only data respectively.",
+    theme    = theme(
+      plot.title    = element_text(face = "bold", size = 15),
+      plot.subtitle = element_text(colour = "black", size = 11,
+                                   margin = margin(b = 10)),
+      plot.caption = element_textbox_simple(
+      size = 9,
+      color = "black",
+      lineheight = 1.3,
+      margin = margin(t = 12)
+    )
+    )
+  )
+
+ggsave("figS2_3_publishers_apc_spend_total_not_adjusted.png", publishers_apc_spend_total_not_adjusted,
+       width = 6.5, height = 7.5, dpi = 300, bg = "white")
+
+publishers_apc_spend_total_not_adjusted
+```
+
+### Figure S2.4 Estimate of annual APC revenue (in USD) by publisher and OA type.
+
+```{r figS2-4-publishers-apc-spend-oa-type-not-adjusted, echo=FALSE, include=FALSE}
+library(ggtext)
+library(scales)
+library(ggh4x)
+library(grid)
+
+# Data
+df_spend_fig4_not_adjusted <- df_spend_by_publisher_oa_type %>%
+    mutate(sum = if_else(sum == 0, NA_real_, sum)) # so that Sage 2025 doesn't print as $0
+
+# Explicit panel order (by apc spend in 2025)
+pub_order <- c(
+  "ELSEVIER", "SPRINGER_NATURE", "MDPI",
+  "WILEY", "FRONTIERS", "OUP",
+  "ACS", "PLOS", "CAMBRIDGE_UNIVERSITY_PRESS_-_CUP",
+  "IOP", "SAGE", "IEEE",
+  "DE_GRUYTER", "EDP"
+)
+
+# Fail on any name mismatch rather than silently dropping a panel
+stopifnot(length(setdiff(pub_order, unique(df_spend_fig4_not_adjusted$publisher))) == 0)
+stopifnot(length(setdiff(unique(df_spend_fig4_not_adjusted$publisher), pub_order)) == 0)
+
+pub_labels <- setNames(clean_label(pub_order), pub_order)
+
+df_spend_fig4_ordered_not_adjusted <- df_spend_fig4_not_adjusted %>%
+  mutate(publisher = factor(publisher, levels = pub_order))
+
+# Peaks in panel order to check these clear the row ceilings set below
+df_spend_fig4_ordered_not_adjusted %>%
+  group_by(publisher) %>%
+  summarise(peak = max(sum, na.rm = TRUE), .groups = "drop") %>%
+  arrange(publisher) %>%
+  print(n = Inf)
+
+# Endpoint labels
+df_ends <- df_spend_fig4_ordered_not_adjusted %>%
+  filter(apc_year == 2025) %>%
+  mutate(label = label_number(scale_cut = cut_short_scale(),
+                              prefix = "$", accuracy = 1)(sum))
+
+## Sage has no 2025 gold data; use its 2024 gold endpoint instead
+df_ends_sage <- df_spend_fig4_ordered_not_adjusted %>%
+  filter(apc_year == 2024, publisher == "SAGE", oa_status == "Gold OA") %>%
+  mutate(label = label_number(scale_cut = cut_short_scale(),
+                              prefix = "$", accuracy = 1)(sum))
+
+df_ends <- bind_rows(df_ends, df_ends_sage) %>%
+  mutate(publisher = factor(publisher, levels = pub_order))
+
+# Per-row y-axis ceilings 
+nc <- 3   
+
+# Row 1: Elsevier, Springer Nature, MDPI
+# Row 2: Wiley, FRONTIERS, OUP
+# Row 3: ACS, PLOS, CUP
+# Row 4: IOP, SAGE, IEEE
+# Row 5: De Gruyter, EDP
+row_specs <- list(
+  list(limit = 700e6, breaks = c(0, 200e6, 400e6, 600e6)),
+  list(limit = 320e6, breaks = c(0, 100e6, 200e6, 300e6)),
+  list(limit =  60e6, breaks = c(0,  20e6,  40e6,  60e6)),
+  list(limit =  60e6, breaks = c(0,  20e6,  40e6,  60e6)),
+  list(limit =  8e6, breaks = c(0,   4e6,   8e6,  12e6))
+)
+
+y_scales <- vector("list", length(pub_order))
+
+for (row_num in seq_along(row_specs)) {
+  positions <- ((row_num - 1) * nc + 1):(row_num * nc)
+  positions <- positions[positions <= length(pub_order)]
+  spec <- row_specs[[row_num]]
+  for (pos in positions) {
+    y_scales[[pos]] <- scale_y_continuous(
+      breaks = spec$breaks,
+      labels = label_number(scale_cut = cut_short_scale(), prefix = "$"),
+      limits = c(0, spec$limit),
+      expand = expansion(mult = c(0.05, 0.15))
+    )
+  }
+}
+
+# OUP sits in row 2 (with Wiley and FRONTIERS) but belongs on a 60M axis
+oup_pos <- which(pub_order == "OUP")
+y_scales[[oup_pos]] <- scale_y_continuous(
+  breaks = c(0, 20e6, 40e6, 60e6),
+  labels = label_number(scale_cut = cut_short_scale(), prefix = "$"),
+  limits = c(0, 60e6),
+  expand = expansion(mult = c(0.05, 0.15))
+)
+
+# Plot
+p <- ggplot(
+  df_spend_fig4_ordered_not_adjusted,
+  aes(
+    x = apc_year,
+    y = sum,
+    colour = oa_status,
+    group = oa_status
+  )
+) +
+  geom_line(linewidth = 0.85) +
+  geom_point(size = 3, shape = 16) +
+  geom_text(
+    data = df_ends,
+    aes(label = label),
+    hjust = -0.15,
+    size = 5,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  facet_wrap2(
+    ~ publisher,
+    scales = "free_y",
+    ncol = nc,
+    labeller = as_labeller(pub_labels)
+  ) +
+  facetted_pos_scales(y = y_scales) +
+  scale_colour_manual(values = pal_oa_types, name = NULL) +
+  scale_x_continuous(
+    breaks = c(2019, 2022, 2025),
+    expand = expansion(mult = c(0.05, 0.42))   # room for the endpoint labels
+  ) +
+  labs(
+    title    = "Estimate of annual APC spend (in USD) by publisher and OA type",
+    caption  = "Panels are ordered by total 2025 APC spend Note that the y-axis scale differs between panels.",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.major.x   = element_blank(),
+    panel.grid.major.y   = element_line(colour = "grey92", linewidth = 0.3),
+    panel.grid.minor     = element_blank(),
+    strip.text           = element_text(
+      face = "bold",
+      size = 14,
+      colour = "black"
+    ),
+    legend.position      = "top",
+    legend.justification = "left",
+    legend.text          = element_text(size = 16),
+    legend.key.width     = unit(2, "lines"),
+    axis.text.x          = element_text(size = 14),
+    axis.text.y          = element_text(size = 14),
+    plot.title           = element_text(face = "bold", size = 18),
+    plot.subtitle        = element_text(colour = "black", size = 16),
+    plot.caption         = element_text(
+      size = 14,
+      colour = "black",
+      margin = margin(t = 15),
+      hjust = 0
+    ),
+    plot.caption.position = "plot",
+    plot.margin = margin(b = 15)
+  )
+```
+
+```{r figS2-4-publishers-apc-spend-oa-type-not-adjusted-plot, echo=FALSE, fig.width=10, fig.height=13}
+print(p)
+
+png(
+  "figures/figS2_4_apc_spend_publisher_oa_type_not_adjusted.png",
+  width = 10 * 300,
+  height = 13 * 300,
+  res = 300
+)
+print(p)
+grid.lines(
+  x  = unit(0.675, "npc"),
+  y  = unit(c(0.57, 0.74), "npc"),
+  gp = gpar(
+    col = "black",
+    lwd = 2.5,
+    lty = "dashed"
+  )
+)
+dev.off()
+
+```
+
+### Table S2.2 Growth of article output and APC spend from 2019 to 2025 per publisher and OA type.
+
+```{r tableS2-2-spend-growth-not-adjusted, echo=FALSE}
+library(kableExtra)
+
+# Spend growth
+spend_growth_not_adjusted <- df_spend_by_publisher_oa_type %>%
+  filter(apc_year %in% c(2019, 2025))
+
+## growth rate per publisher, split by OA status
+growth_by_type_not_adjusted <- spend_growth_not_adjusted %>%
+  group_by(publisher, oa_status, apc_year) %>%
+  summarise(total = sum(sum), .groups = "drop") %>%
+  pivot_wider(names_from = apc_year, values_from = total, names_prefix = "y") %>%
+  mutate(growth_pct = round((y2025 - y2019) / y2019 * 100, 1))
+
+## growth rate per publisher, Gold+Hybrid combined
+growth_combined_not_adjusted <- spend_growth_not_adjusted %>%
+  group_by(publisher, apc_year) %>%
+  summarise(total = sum(sum), .groups = "drop") %>%
+  pivot_wider(names_from = apc_year, values_from = total, names_prefix = "y") %>%
+  mutate(oa_status = "Gold+Hybrid",
+         growth_pct = round((y2025 - y2019) / y2019 * 100, 1))
+
+## the "all publishers" row, split by OA status
+growth_all_not_adjusted <- spend_growth_not_adjusted %>%
+  group_by(oa_status, apc_year) %>%
+  summarise(total = sum(sum), .groups = "drop") %>%
+  pivot_wider(names_from = apc_year, values_from = total, names_prefix = "y") %>%
+  mutate(publisher = "all publishers",
+         growth_pct = round((y2025 - y2019) / y2019 * 100, 1))
+
+## the "all publishers" row, Gold+Hybrid combined
+growth_all_combined_not_adjusted <- spend_growth_not_adjusted %>%
+  group_by(apc_year) %>%
+  summarise(total = sum(sum), .groups = "drop") %>%
+  pivot_wider(names_from = apc_year, values_from = total, names_prefix = "y") %>%
+  mutate(publisher = "all publishers", oa_status = "Gold+Hybrid",
+         growth_pct = round((y2025 - y2019) / y2019 * 100, 1))
+
+# spend growth table
+table2_spend_growth_not_adjusted <- bind_rows(growth_by_type_not_adjusted, growth_combined_not_adjusted,
+                                  growth_all_not_adjusted, growth_all_combined_not_adjusted) %>%
+  select(publisher, oa_status, growth_pct) %>%
+  pivot_wider(names_from = oa_status, values_from = growth_pct) %>%
+  select(publisher, spend_gh = `Gold+Hybrid`, spend_g = `Gold OA`, spend_h = `Hybrid OA`)
+
+# Article output growth
+## article-count growth per publisher, split by OA status
+article_growth <- journals_pub_counts_apc %>%
+  filter(year %in% c(2019, 2025), oa_status %in% c("Gold OA", "Hybrid OA")) %>%
+  group_by(publisher, oa_status, year) %>%
+  summarise(total = sum(goldDiamondHybrid, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = year, values_from = total, names_prefix = "y") %>%
+  mutate(growth_pct = round((y2025 - y2019) / y2019 * 100, 1))
+
+## article-count growth per publisher, Gold+Hybrid combined
+article_growth_combined <- journals_pub_counts_apc %>%
+  filter(year %in% c(2019, 2025), oa_status %in% c("Gold OA", "Hybrid OA")) %>%
+  group_by(publisher, year) %>%
+  summarise(total = sum(goldDiamondHybrid, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = year, values_from = total, names_prefix = "y") %>%
+  mutate(oa_status = "Gold+Hybrid",
+         growth_pct = round((y2025 - y2019) / y2019 * 100, 1))
+
+## the "all publishers" row, split by OA status
+article_growth_all <- journals_pub_counts_apc %>%
+  filter(year %in% c(2019, 2025), oa_status %in% c("Gold OA", "Hybrid OA")) %>%
+  group_by(oa_status, year) %>%
+  summarise(total = sum(goldDiamondHybrid, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = year, values_from = total, names_prefix = "y") %>%
+  mutate(publisher = "all publishers",
+         growth_pct = round((y2025 - y2019) / y2019 * 100, 1))
+
+## the "all publishers" row, Gold+Hybrid combined
+article_growth_all_combined <- journals_pub_counts_apc %>%
+  filter(year %in% c(2019, 2025), oa_status %in% c("Gold OA", "Hybrid OA")) %>%
+  group_by(year) %>%
+  summarise(total = sum(goldDiamondHybrid, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = year, values_from = total, names_prefix = "y") %>%
+  mutate(publisher = "all publishers", oa_status = "Gold+Hybrid",
+         growth_pct = round((y2025 - y2019) / y2019 * 100, 1))
+
+# article grwoth table
+table2_article_growth_not_adjusted <- bind_rows(article_growth, article_growth_combined,
+                                    article_growth_all, article_growth_all_combined) %>%
+  select(publisher, oa_status, growth_pct) %>%
+  pivot_wider(names_from = oa_status, values_from = growth_pct) %>%
+  select(publisher, articles_gh = `Gold+Hybrid`, articles_g = `Gold OA`, articles_h = `Hybrid OA`)
+
+# Combine article + spend growth into one table
+table2_full_not_adjusted <- table2_article_growth_not_adjusted %>%
+  left_join(table2_spend_growth_not_adjusted, by = "publisher") %>%
+  mutate(publisher = if_else(publisher == "all publishers",
+                              "All publishers",
+                              clean_label(publisher))) %>%
+  arrange(publisher != "All publishers", publisher)
+
+# Add n/a for Sage due to data gaps
+table2_full_not_adjusted <- table2_full_not_adjusted %>%
+  mutate(across(-publisher, ~ if_else(str_detect(publisher, regex("sage", ignore_case = TRUE)), NA_real_, .x)))
+
+# Save
+write_csv(table2_full_not_adjusted, "tableS2_2_growth_full_not_adjusted.csv")
+
+# Print
+table2_full_not_adjusted %>%
+  mutate(across(-publisher, ~ if_else(is.na(.x), "n/a", sprintf("%+.1f%%", .x)))) %>%
+  knitr::kable(
+    col.names = c("Publisher", "Gold+Hybrid", "Gold", "Hybrid",
+                  "Gold+Hybrid", "Gold", "Hybrid"),
+    align = "lrrrrrr",
+    caption = "Table S2.2 Growth of article output and APC spend from 2019 to 2025 per publisher and OA type."
+  ) %>%
+  kable_styling(full_width = FALSE) %>%
+  add_header_above(c(
+    " " = 1,
+    "Number of APC-able publications" = 3,
+    "Spend estimate based on APCs in USD (adjusted to 2025 prices)" = 3
+  ))
+```

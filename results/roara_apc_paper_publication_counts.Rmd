@@ -1,0 +1,529 @@
+---
+title: "roara_apc_paper_publication_counts"
+author: "Lisa Matthias"
+date: "2026-07-29"
+output: github_document
+always_allow_html: true
+---
+This supplement provides the number of APC-able publications underlying the spend estimates reported in the main text.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      collapse = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+```
+
+```{r data, include=FALSE}
+article_counts <- read_csv("./data/article_counts_by_publisher_year_OAtype.csv")
+```
+
+```{r colors, include=FALSE}
+# Palette OA Types
+pal_oa_types <- c("Gold OA" = "#D6A94E", "Hybrid OA" = "#B85428")
+
+# Palette Publishers
+pal_top5 <- c(
+  "Elsevier"        = "#ff7f0f",  
+  "Springer Nature" = "#00316e",   
+  "MDPI"            = "#697754",   
+  "Wiley"           = "#b680bf",   
+  "Frontiers"       = "#069494"    
+)
+
+pal_other <- c(
+  "OUP"        = "#205f4b", 
+  "ACS"        = "#7B7BE8",
+  "PLOS"       = "#7e1a2f",
+  "CUP"        = "#ee8577",
+  "IOP"        = "#4A8FBF",
+  "Sage"       = "#B3B177",
+  "IEEE"       = "#2E4057",
+  "De Gruyter" = "#a06177",
+  "EDP"        = "#D58E40"
+)
+```
+
+### Table S3.1 Number of APC-able publications per OA type, 2019–2025.
+
+```{r tableS3-1-article-count-overall,echo=FALSE}
+library(kableExtra)
+
+# Get article counts
+pub_count_table <- article_counts %>%
+  group_by(apc_year) %>%
+  summarise(Gold = sum(`Gold OA`, na.rm = TRUE),
+            Hybrid = sum(`Hybrid OA`, na.rm = TRUE),
+            .groups = "drop")
+
+# Add 2019-2025 total row
+pub_count_totals <- pub_count_table %>%
+  summarise(across(c(Gold, Hybrid), sum, na.rm = TRUE)) %>%
+  mutate(apc_year = "2019-2025")
+
+pub_count_table_full <- pub_count_table %>%
+  mutate(apc_year = as.character(apc_year)) %>%
+  bind_rows(pub_count_totals)
+
+# Print
+pub_count_table_full %>%
+  mutate(Gold = scales::comma(Gold),
+         Hybrid = scales::comma(Hybrid)) %>%
+  knitr::kable(
+    col.names = c("Publication year", "Gold", "Hybrid"),
+    align = "lrr",
+    caption = "Table S3.1 Number of APC-able publications per OA type, 2019–2025."
+  ) %>%
+  kable_styling(full_width = FALSE)
+```
+
+## OA type
+### Figure S3.2 Number of APC-able publications per OA type, 2019–2025.
+
+```{r figS3-2-articles-gold-hybrid-chicklet, echo=FALSE, fig.dpi=300}
+library(ggchicklet)   
+library(scales)
+library(ggtext)
+
+df_articles_by_publisher_oa_type <- article_counts %>%
+  pivot_longer(cols = c(`Gold OA`, `Hybrid OA`),
+               names_to = "oa_status", values_to = "n_articles")
+
+# Total articles per year, per OA type (summed across all publishers)
+df_year_oa_type_articles <- df_articles_by_publisher_oa_type %>%
+  group_by(apc_year, oa_status) %>%
+  summarise(total = sum(n_articles, na.rm = TRUE), .groups = "drop")
+
+# Lock stacking order explicitly: Gold OA bottom, Hybrid OA top
+df_year_oa_type_articles <- df_year_oa_type_articles %>%
+  mutate(oa_status = factor(oa_status, levels = c("Gold OA", "Hybrid OA")))
+
+# Compute cumulative stack positions manually so labels can be placed precisely
+df_year_oa_type_articles <- df_year_oa_type_articles %>%
+  arrange(apc_year, oa_status) %>%
+  group_by(apc_year) %>%
+  mutate(
+    ymax        = cumsum(total),
+    ymin        = ymax - total,
+    grand_total_bar = sum(total),
+    seg_share   = total / grand_total_bar
+  ) %>%
+  ungroup()
+
+df_year_oa_type_articles <- df_year_oa_type_articles %>%
+  mutate(is_thin = seg_share < 0.12)
+
+# Label format: mixed K/M style, matching the main paper's format_mixed()
+format_articles_mixed <- function(x) {
+  if_else(
+    x >= 1e6,
+    paste0(round(x / 1e6, 1), "M"),
+    paste0(scales::comma(round(x / 1e3, 0)), "K")
+  )
+}
+
+# Endpoint labels: total per segment, placed inside/at top of each chicklet
+df_year_oa_type_articles <- df_year_oa_type_articles %>%
+  mutate(label = format_articles_mixed(total))
+
+# Grand total per year (for the overall annotation above each bar)
+df_total_articles <- df_year_oa_type_articles %>%
+  group_by(apc_year) %>%
+  summarise(grand_total = sum(total, na.rm = TRUE)) %>%
+  mutate(label = format_articles_mixed(grand_total))
+
+# Plot
+ggplot(df_year_oa_type_articles, aes(x = factor(apc_year), y = total, fill = oa_status)) +
+  geom_chicklet(
+    radius = grid::unit(3, "pt"),
+    width = 0.7
+  ) +
+  geom_text(
+    aes(label = label, y = (ymin + ymax) / 2, vjust = if_else(is_thin, 0.7, 0.5)),
+    color = "white", fontface = "bold", size = 3.4
+  ) +
+  geom_text(
+    data = df_total_articles,
+    aes(x = factor(apc_year), y = grand_total, label = label),
+    inherit.aes = FALSE,
+    vjust = -0.6, fontface = "bold", size = 4, color = "black"
+  ) +
+  scale_fill_manual(values = pal_oa_types, name = NULL) +
+  scale_y_continuous(
+    labels = label_number(scale_cut = cut_short_scale()),
+    expand = expansion(mult = c(0, 0.12))
+  ) +
+  labs(
+    title = "Number of APC-able publications by OA type",
+    caption = "Some publishers are not covered in every year (De Gruyter and OUP begin in 2021, IOP is missing 2020, and Sage's 2019 and 2025 data are gold-only and hybrid-only respectively).",
+    x = NULL, y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor    = element_blank(),
+    panel.grid.major.y = element_blank(),
+    axis.text.x  = element_text(size = 12, face = "bold", color = "black"),
+    axis.text.y  = element_blank(),
+    axis.line.x.bottom  = element_line(color = "black", linewidth = 0.4),
+    legend.position = "top",
+    legend.justification = "left",
+    plot.title    = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(color = "black", size = 11),
+    plot.caption = element_textbox_simple(
+      size = 9,
+      color = "black",
+      lineheight = 1.3,
+      margin = margin(t = 12)
+    )
+  )
+
+ggsave("figures/figS3_2_articles_chicklet.png", width = 7, height = 5, dpi = 300, bg = "white")
+```
+
+## Publisher
+### Figure S3.3 Number of APC-able publications by publisher, 2019–2025.
+
+```{r function-clean-publisher-labels,echo=FALSE}
+# Clean publisher labels
+clean_label <- function(x) {
+  x %>%
+    str_replace_all("_", " ") %>%
+    str_to_title() %>%
+    str_replace("Acs", "ACS") %>%
+    str_replace("Cambridge University Press - Cup", "CUP") %>%
+    str_replace("Edp", "EDP") %>%
+    str_replace("Ieee", "IEEE") %>%
+    str_replace("Iop", "IOP") %>%
+    str_replace("Mdpi", "MDPI") %>%
+    str_replace("Oup", "OUP") %>%
+    str_replace("Plos", "PLOS")
+}
+```
+
+```{r function-make-fig-count,echo=FALSE}
+library(tidyverse)
+library(scales)
+library(ggrepel)
+
+make_fig_count <- function(data, ends_data, title, y_breaks, pal, use_repel = TRUE,
+                            label_fn = scales::comma) {
+
+  lab_layer <- if (use_repel) {
+    geom_text_repel(
+      data = ends_data,
+      aes(x = x_lab, y = value, label = lab),
+      hjust              = 0,
+      direction          = "y",
+      size               = 3.1,
+      fontface           = "bold",
+      segment.colour     = "grey75",
+      segment.size       = 0.25,
+      min.segment.length = 0.4,
+      box.padding        = 0.25,
+      show.legend        = FALSE
+    )
+  } else {
+    geom_text(
+      data = ends_data,
+      aes(x = x_lab, y = value, label = lab),
+      hjust       = 0,
+      size        = 3.1,
+      fontface    = "bold",
+      show.legend = FALSE
+    )
+  }
+
+  ggplot(data, aes(apc_year, value, colour = publisher)) +
+
+    # hand-drawn gridlines: stop at 2025, don't run into the label gutter
+    geom_segment(
+      data = tibble(y = y_breaks),
+      aes(x = 2019, xend = 2025, y = y, yend = y),
+      inherit.aes = FALSE,
+      colour = "grey92", linewidth = 0.4
+    ) +
+
+    geom_line(linewidth = 0.9) +
+    geom_point(size = 1.6) +
+    lab_layer +
+
+    scale_x_continuous(
+      breaks = 2019:2025,
+      expand = expansion(mult = c(0.03, 0.42))   # gutter for the labels
+    ) +
+    scale_y_continuous(
+      breaks = y_breaks,
+      labels = label_fn,
+      expand = expansion(mult = c(0.05, 0.08))
+    ) +
+    scale_colour_manual(values = pal, drop = TRUE) +
+    labs(title = title, x = NULL, y = NULL) +
+    theme_minimal(base_size = 12) +
+    theme(
+      legend.position = "none",
+      panel.grid      = element_blank(),
+      plot.title      = element_text(face = "bold", size = 12,
+                                     margin = margin(b = 6))
+    )
+}
+```
+
+```{r figS3-3-publishers-article-output,echo=FALSE,fig.width = 6.5, fig.height = 7.5, fig.dpi=300}
+library(patchwork)
+
+articles_by_pub <- article_counts %>%
+  pivot_longer(cols = c(`Gold OA`, `Hybrid OA`),
+               names_to = "oa_status", values_to = "n_articles") %>%
+  group_by(publisher, apc_year) %>%
+  summarise(value = sum(n_articles, na.rm = TRUE), .groups = "drop") %>%
+  mutate(publisher = clean_label(publisher)) %>%
+  filter(!(publisher == "IOP" & apc_year == 2020))
+
+top5_articles <- articles_by_pub %>%
+  group_by(publisher) %>%
+  summarise(tot = sum(value), .groups = "drop") %>%
+  slice_max(tot, n = 5) %>%
+  pull(publisher)
+
+articles_by_pub <- articles_by_pub %>%
+  mutate(group = if_else(publisher %in% top5_articles, "Top 5 publishers", "Other publishers"))
+
+ends_articles <- articles_by_pub %>%
+  group_by(publisher, group) %>%
+  filter(apc_year == max(apc_year)) %>%
+  ungroup() %>%
+  mutate(
+    lab = paste0(publisher, "  ", formatC(round(value), format = "d", big.mark = ",")),
+    x_lab = 2025.25
+  )
+
+p_top5_articles <- make_fig_count(
+  filter(articles_by_pub, group == "Top 5 publishers"),
+  filter(ends_articles,   group == "Top 5 publishers"),
+  "Top 5 publishers",
+  y_breaks = seq(0, 350000, by = 70000),   # covers max ~344,287
+  pal      = pal_top5,
+  use_repel = FALSE
+)
+
+p_next9_articles <- make_fig_count(
+  filter(articles_by_pub, group == "Other publishers"),
+  filter(ends_articles,   group == "Other publishers"),
+  "Next 9 publishers",
+  y_breaks  = seq(0, 35000, by = 7000),   # covers max ~34,156
+  pal       = pal_other,
+  use_repel = TRUE
+)
+
+publishers_article_output <- p_top5_articles / p_next9_articles +
+  plot_annotation(
+    title    = "Number of APC-able publications by publisher",
+    caption  = "Sage's 2019 and 2025 figures reflect gold-only and hybrid-only data respectively.",
+    theme    = theme(
+      plot.title    = element_text(face = "bold", size = 15),
+      plot.subtitle = element_text(colour = "black", size = 11,
+                                   margin = margin(b = 10)),
+      plot.caption  = element_textbox_simple(
+        size = 9,
+        color = "black",
+        lineheight = 1.3,
+        margin = margin(t = 12)
+      )
+    )
+  )
+
+ggsave("figures/figS3_3_publishers_article_output.svg", publishers_article_output,
+       width = 6.5, height = 7.5, dpi = 300, bg = "white")
+
+publishers_article_output
+```
+
+### Figure S3.4 Number of APC-able publications by publisher and OA type, 2019–2025.
+
+```{r figS3-4-publishers-article-count-oa-type, echo=FALSE, include=FALSE}
+library(ggtext)
+library(scales)
+library(ggh4x)
+library(grid)
+
+# Data
+df_articles_fig <- df_articles_by_publisher_oa_type %>%
+  group_by(publisher, apc_year, oa_status) %>%
+  summarise(n_articles = sum(n_articles, na.rm = TRUE), .groups = "drop") %>%
+  # Explicitly remove SAGE 2025 Gold OA to prevent it from plotting
+  filter(!(publisher == "SAGE" & apc_year == 2025 & oa_status == "Gold OA")) %>%
+  mutate(n_articles = if_else(n_articles == 0, NA_real_, n_articles))
+
+# Explicit panel order (matching Figure 4's publisher order)
+pub_order <- c(
+  "ELSEVIER", "SPRINGER_NATURE", "MDPI",
+  "WILEY", "FRONTIERS", "OUP",
+  "PLOS", "IEEE", "ACS", 
+  "IOP", "CAMBRIDGE_UNIVERSITY_PRESS_-_CUP", "SAGE",
+  "DE_GRUYTER", "EDP"
+)
+
+stopifnot(length(setdiff(pub_order, unique(df_articles_fig$publisher))) == 0)
+stopifnot(length(setdiff(unique(df_articles_fig$publisher), pub_order)) == 0)
+
+pub_labels <- setNames(clean_label(pub_order), pub_order)
+
+df_articles_fig_ordered <- df_articles_fig %>%
+  mutate(publisher = factor(publisher, levels = pub_order))
+
+# Peaks in panel order — check these against the row ceilings set below
+df_articles_fig_ordered %>%
+  group_by(publisher) %>%
+  summarise(peak = max(n_articles, na.rm = TRUE), .groups = "drop") %>%
+  arrange(publisher) %>%
+  print(n = Inf)
+
+# Endpoint labels
+df_ends <- df_articles_fig_ordered %>%
+  filter(apc_year == 2025) %>%
+  mutate(label = label_number(scale_cut = cut_short_scale(), accuracy = 1)(n_articles))
+
+## Sage has no 2025 gold data; use its 2024 gold endpoint instead
+df_ends_sage <- df_articles_fig_ordered %>%
+  filter(apc_year == 2024, publisher == "SAGE", oa_status == "Gold OA") %>%
+  mutate(label = label_number(scale_cut = cut_short_scale(), accuracy = 1)(n_articles))
+
+df_ends <- bind_rows(df_ends, df_ends_sage) %>%
+  mutate(publisher = factor(publisher, levels = pub_order))
+
+# Per-row y-axis ceilings 
+nc <- 3
+
+# Run this first to set real ceilings:
+df_articles_fig_ordered %>% group_by(publisher) %>% summarise(peak = max(n_articles, na.rm=TRUE))
+
+row_specs <- list(
+  list(limit = 300000, breaks = c(0, 100000, 200000, 300000)),           # Row 1: Elsevier, SN, MDPI
+  list(limit = 100000, breaks = c(0, 25000, 50000, 75000, 100000)),      # Row 2: Wiley, Frontiers, OUP
+  list(limit =  25000, breaks = c(0,  5000, 10000, 15000, 20000, 25000)),# Row 3: ACS, PLOS, CUP
+  list(limit =  16000, breaks = c(0,  4000,  8000, 12000, 16000)),       # Row 4: IOP, SAGE, IEEE
+  list(limit =   8000, breaks = c(0,  2000,  4000,  6000,  8000))        # Row 5: De Gruyter, EDP
+)
+
+y_scales <- vector("list", length(pub_order))
+
+for (row_num in seq_along(row_specs)) {
+  positions <- ((row_num - 1) * nc + 1):(row_num * nc)
+  positions <- positions[positions <= length(pub_order)]
+  spec <- row_specs[[row_num]]
+  for (pos in positions) {
+    y_scales[[pos]] <- scale_y_continuous(
+      breaks = spec$breaks,
+      labels = label_number(scale_cut = cut_short_scale()),
+      limits = c(0, spec$limit),
+      expand = expansion(mult = c(0.05, 0.15))
+    )
+  }
+}
+
+# OUP override — much smaller than Wiley/Frontiers in its row (peak 21,499)
+oup_pos <- which(pub_order == "OUP")
+y_scales[[oup_pos]] <- scale_y_continuous(
+  breaks = c(0, 5000, 10000, 15000, 20000, 25000),
+  labels = label_number(scale_cut = cut_short_scale()),
+  limits = c(0, 25000),
+  expand = expansion(mult = c(0.05, 0.15))
+)
+
+# IEEE override — largest in its row (peak 18,995), 16,000 ceiling would clip it
+ieee_pos <- which(pub_order == "IEEE")
+y_scales[[ieee_pos]] <- scale_y_continuous(
+  breaks = c(0, 5000, 10000, 15000, 20000, 25000),
+  labels = label_number(scale_cut = cut_short_scale()),
+  limits = c(0, 25000),
+  expand = expansion(mult = c(0.05, 0.15))
+)
+
+# ACS override — largest in its row (peak 18,995), 16,000 ceiling would clip it
+acs_pos <- which(pub_order == "ACS")
+y_scales[[acs_pos]] <- scale_y_continuous(
+  breaks = c(0, 4000, 8000, 12000, 16000),
+  labels = label_number(scale_cut = cut_short_scale()),
+  limits = c(0, 16000),
+  expand = expansion(mult = c(0.05, 0.15))
+)
+
+# Plot
+p_articles <- ggplot(
+  df_articles_fig_ordered,
+  aes(
+    x = apc_year,
+    y = n_articles,
+    colour = oa_status,
+    group = oa_status
+  )
+) +
+  geom_line(linewidth = 0.85) +
+  geom_point(size = 3, shape = 16) +
+  geom_text(
+    data = df_ends,
+    aes(label = label),
+    hjust = -0.15,
+    size = 5,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+  facet_wrap2(
+    ~ publisher,
+    scales = "free_y",
+    ncol = nc,
+    labeller = as_labeller(pub_labels)
+  ) +
+  facetted_pos_scales(y = y_scales) +
+  scale_colour_manual(values = pal_oa_types, name = NULL) +
+  scale_x_continuous(
+    breaks = c(2019, 2022, 2025),
+    expand = expansion(mult = c(0.05, 0.42))
+  ) +
+  labs(
+    title    = "Number of APC-able publications by publisher and OA type",
+    caption  = "Panels are ordered by total number of APC-able publications. Note that the y-axis scale differs between panels.",
+    x = NULL,
+    y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.major.x   = element_blank(),
+    panel.grid.major.y   = element_line(colour = "grey92", linewidth = 0.3),
+    panel.grid.minor     = element_blank(),
+    strip.text           = element_text(face = "bold", size = 14, colour = "black"),
+    legend.position      = "top",
+    legend.justification = "left",
+    legend.text          = element_text(size = 16),
+    legend.key.width     = unit(2, "lines"),
+    axis.text.x          = element_text(size = 14),
+    axis.text.y          = element_text(size = 14),
+    plot.title           = element_text(face = "bold", size = 18),
+    plot.subtitle        = element_text(colour = "black", size = 16),
+    plot.caption         = element_text(
+      size = 14, colour = "black", margin = margin(t = 15), hjust = 0
+    ),
+    plot.caption.position = "plot",
+    plot.margin = margin(b = 15)
+  )
+```
+
+```{r figS3-4-publishers-article-count-oa-type-plot, echo=FALSE, fig.width=10, fig.height=13}
+print(p_articles)
+
+png(
+  "figures/figS3_4_article_count_publisher_oa_type.png",
+  width = 10 * 300,
+  height = 13 * 300,
+  res = 300
+)
+print(p_articles)
+dev.off()
+```
+
+(For the published version, dashed lines were added with Adobe Illustrator)
