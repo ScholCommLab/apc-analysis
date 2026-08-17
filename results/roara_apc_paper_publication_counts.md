@@ -200,17 +200,17 @@ Hybrid
 
 ### Figure S3.2 Number of APC-able publications per OA type, 2019–2025.
 
-![](roara_apc_paper_publication_counts_files/figure-gfm/figS3-2-articles-gold-hybrid-chicklet-1.png)<!-- -->
+![](../figures/figS3_2_articles_chicklet.png)
 
 ## Publisher
 
 ### Figure S3.3 Number of APC-able publications by publisher, 2019–2025.
 
-![](roara_apc_paper_publication_counts_files/figure-gfm/figS3-3-publishers-article-output-1.png)<!-- -->
+![](../figures/figS3_3_publishers_article_output.svg)
 
 ### Figure S3.4 Number of APC-able publications by publisher and OA type, 2019–2025.
 
-![](roara_apc_paper_publication_counts_files/figure-gfm/figS3-4-publishers-article-count-oa-type-plot-1.png)<!-- -->
+![](../figures/figS3_4_article_count_publisher_oa_type.png)
 
     ## quartz_off_screen 
     ##                 2
