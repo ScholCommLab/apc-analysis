@@ -12,7 +12,7 @@ counterparts in the main text.
 
 ### Figure S2.2 Estimate of annual APC spend (in USD) per OA type
 
-![](apc_paper_without_inflation_adjustment_files/figure-gfm/figS2-2-apc-spend-gold-hybrid-chicklet-no-adjustment-1.png)<!-- -->
+![](figures/figS2_2_apc_spend_chicklet_not_adjusted.png)<!-- -->
 
 ## Publishers
 
