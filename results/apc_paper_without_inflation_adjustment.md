@@ -12,7 +12,7 @@ counterparts in the main text.
 
 ### Figure S2.2 Estimate of annual APC spend (in USD) per OA type
 
-![](figures/figS2_2_apc_spend_chicklet_not_adjusted.png)
+![figures2.2](figures/figS2_2_apc_spend_chicklet_not_adjusted.png)
 
 ## Publishers
 
