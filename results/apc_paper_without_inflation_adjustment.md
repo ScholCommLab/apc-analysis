@@ -12,17 +12,17 @@ counterparts in the main text.
 
 ### Figure S2.2 Estimate of annual APC spend (in USD) per OA type
 
-![figures2.2](figures/figS2_2_apc_spend_chicklet_not_adjusted.png)
+![](../figures/figS2_2_apc_spend_chicklet_not_adjusted.png)
 
 ## Publishers
 
 ### Figure S2.3 Estimate of annual APC spend (in USD) by publisher.
 
-![](apc_paper_without_inflation_adjustment_files/figure-gfm/figS2-3-publishers-apc-spend-1.png)<!-- -->
+![](../figures/figS2_3_publishers_apc_spend_total_not_adjusted.png)
 
 ### Figure S2.4 Estimate of annual APC revenue (in USD) by publisher and OA type.
 
-![](apc_paper_without_inflation_adjustment_files/figure-gfm/figS2-4-publishers-apc-spend-oa-type-not-adjusted-plot-1.png)<!-- -->
+![](../figures/figS2_4_apc_spend_publisher_oa_type_not_adjusted.png)
 
     ## quartz_off_screen 
     ##                 2
