@@ -73,9 +73,8 @@ Hybrid OA journal-year combinations with known APCs
 
 <caption>
 
-Table 1. Estimate of annual APC spend (in millions USD) per OA type for
-actual APCs paid and adjusted for inflation using CPI Advanced
-Economies.
+Table 1. Estimate of annual APC spend (in millions USD) per OA type
+unadjusted and adjusted for inflation using CPI Advanced Economies.
 </caption>
 
 <thead>
@@ -381,7 +380,7 @@ NA
 
 ### Figure 2. Estimate of annual APC spend (in USD) per OA type, adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](../figures/fig2_apc_spend_chicklet.png)
+![](roara_apc_paper_analysis_files/figure-gfm/fig2-apc-spend-gold-hybrid-chicklet-1.png)<!-- -->
 
 ### Numbers for plot description
 
@@ -405,7 +404,7 @@ Growth 2019 → 2025, per OA type
 
 ### Figure 3. Estimate of annual APC spend (in USD) by publisher adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](../figures/fig3_publishers_apc_spend_total.svg)
+![](roara_apc_paper_analysis_files/figure-gfm/fig3-publishers-apc-spend-1.png)<!-- -->
 
 (For the published figure, label positioning was adjusted with Adobe
 Illustrator)
@@ -448,10 +447,10 @@ IEEE spend growth, 2019–2025
 
 ### Figure 4. Estimate of annual APC revenue (in USD) by publisher and OA type adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](../figures/fig4_apc_spend_publisher_oa_type.png)
+![](roara_apc_paper_analysis_files/figure-gfm/fig4-publishers-apc-spend-oa-type-plot-1.png)<!-- -->
 
-    ## quartz_off_screen 
-    ##                 2
+    ## png 
+    ##   2
 
 ### Table 2. Growth of article output and APC spend (adjusted for inflation to 2025 USD using CPI Advanced Economies) from 2019 to 2025 per publisher and OA type.
 
@@ -1126,32 +1125,1249 @@ Wiley
 
 </table>
 
-## APC listed vs. paid
+## Table 2 Writing: Checking for impact of journal flips
 
-### Figure 5. Distribution of the number of journals per listed APC (journal level) and the number of articles per paid APC (article level) for 2025 by OA type, all publishers. Medians are indicated with a dashed line.
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
 
-![](../figures/fig5-pooled.svg)
+<caption>
+
+Table 2 Supplement. Contribution to growth in APC spend (adjusted for
+inflation to 2025 USD using CPI Advanced Economies) per publisher and OA
+type, by journal trajectory, in percentage points.
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+Publisher
+</th>
+
+<th style="text-align:left;">
+
+Period
+</th>
+
+<th style="text-align:right;">
+
+Remained
+</th>
+
+<th style="text-align:right;">
+
+Flipped to gold
+</th>
+
+<th style="text-align:right;">
+
+Flipped to hybrid
+</th>
+
+<th style="text-align:right;">
+
+Multiple switches
+</th>
+
+<th style="text-align:right;">
+
+Entered after base year
+</th>
+
+<th style="text-align:right;">
+
+Total
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr grouplength="14">
+
+<td colspan="8" style="border-bottom: 1px solid;">
+
+<strong>Gold OA</strong>
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+ACS
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++276.8
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++106.4
+</td>
+
+<td style="text-align:right;">
+
++383.2
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+CUP
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++113.7
+</td>
+
+<td style="text-align:right;">
+
++892.7
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++199.2
+</td>
+
+<td style="text-align:right;">
+
++1205.6
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+De Gruyter
+</td>
+
+<td style="text-align:left;">
+
+2021–2025
+</td>
+
+<td style="text-align:right;">
+
++3.6
+</td>
+
+<td style="text-align:right;">
+
++4.1
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++16.0
+</td>
+
+<td style="text-align:right;">
+
++23.7
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+EDP
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
+-14.1
+</td>
+
+<td style="text-align:right;">
+
++1134.7
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++10.2
+</td>
+
+<td style="text-align:right;">
+
++1130.8
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Elsevier
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++149.6
+</td>
+
+<td style="text-align:right;">
+
++160.8
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.2
+</td>
+
+<td style="text-align:right;">
+
++285.7
+</td>
+
+<td style="text-align:right;">
+
++596.3
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Frontiers
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++147.8
+</td>
+
+<td style="text-align:right;">
+
++1.4
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++22.1
+</td>
+
+<td style="text-align:right;">
+
++171.3
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+IEEE
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
+-14.6
+</td>
+
+<td style="text-align:right;">
+
++11.5
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++13.3
+</td>
+
+<td style="text-align:right;">
+
++10.2
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+IOP
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++67.6
+</td>
+
+<td style="text-align:right;">
+
++355.1
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++173.2
+</td>
+
+<td style="text-align:right;">
+
++595.9
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+MDPI
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++250.3
+</td>
+
+<td style="text-align:right;">
+
++0.1
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++12.9
+</td>
+
+<td style="text-align:right;">
+
++263.3
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+OUP
+</td>
+
+<td style="text-align:left;">
+
+2021–2025
+</td>
+
+<td style="text-align:right;">
+
++10.2
+</td>
+
+<td style="text-align:right;">
+
++81.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++16.7
+</td>
+
+<td style="text-align:right;">
+
++107.8
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+PLOS
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++42.9
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++13.5
+</td>
+
+<td style="text-align:right;">
+
++56.4
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Sage
+</td>
+
+<td style="text-align:left;">
+
+2019–2024
+</td>
+
+<td style="text-align:right;">
+
++20.4
+</td>
+
+<td style="text-align:right;">
+
++6.0
+</td>
+
+<td style="text-align:right;">
+
+-0.8
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++12.5
+</td>
+
+<td style="text-align:right;">
+
++38.2
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Springer Nature
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++152.1
+</td>
+
+<td style="text-align:right;">
+
++16.6
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++19.7
+</td>
+
+<td style="text-align:right;">
+
++188.3
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Wiley
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++173.6
+</td>
+
+<td style="text-align:right;">
+
++110.1
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++102.4
+</td>
+
+<td style="text-align:right;">
+
++386.0
+</td>
+
+</tr>
+
+<tr grouplength="11">
+
+<td colspan="8" style="border-bottom: 1px solid;">
+
+<strong>Hybrid OA</strong>
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+ACS
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++402.7
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++33.9
+</td>
+
+<td style="text-align:right;">
+
++436.6
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+CUP
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++206.4
+</td>
+
+<td style="text-align:right;">
+
+-61.5
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++67.6
+</td>
+
+<td style="text-align:right;">
+
++212.6
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+De Gruyter
+</td>
+
+<td style="text-align:left;">
+
+2021–2025
+</td>
+
+<td style="text-align:right;">
+
++21.1
+</td>
+
+<td style="text-align:right;">
+
+-35.2
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++3.3
+</td>
+
+<td style="text-align:right;">
+
+-10.8
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+EDP
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++5.9
+</td>
+
+<td style="text-align:right;">
+
+-85.1
+</td>
+
+<td style="text-align:right;">
+
++0.2
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++6.1
+</td>
+
+<td style="text-align:right;">
+
+-72.9
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Elsevier
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++604.7
+</td>
+
+<td style="text-align:right;">
+
+-11.1
+</td>
+
+<td style="text-align:right;">
+
++4.7
+</td>
+
+<td style="text-align:right;">
+
++0.6
+</td>
+
+<td style="text-align:right;">
+
++77.6
+</td>
+
+<td style="text-align:right;">
+
++676.5
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+IEEE
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++124.2
+</td>
+
+<td style="text-align:right;">
+
+-3.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++54.3
+</td>
+
+<td style="text-align:right;">
+
++175.5
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+IOP
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++364.3
+</td>
+
+<td style="text-align:right;">
+
+-17.1
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++38.2
+</td>
+
+<td style="text-align:right;">
+
++385.5
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+OUP
+</td>
+
+<td style="text-align:left;">
+
+2021–2025
+</td>
+
+<td style="text-align:right;">
+
++89.4
+</td>
+
+<td style="text-align:right;">
+
+-22.4
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++7.1
+</td>
+
+<td style="text-align:right;">
+
++74.0
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Sage
+</td>
+
+<td style="text-align:left;">
+
+2020–2025
+</td>
+
+<td style="text-align:right;">
+
++146.1
+</td>
+
+<td style="text-align:right;">
+
+-8.0
+</td>
+
+<td style="text-align:right;">
+
++1.2
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++18.3
+</td>
+
+<td style="text-align:right;">
+
++157.6
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Springer Nature
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++207.9
+</td>
+
+<td style="text-align:right;">
+
+-7.9
+</td>
+
+<td style="text-align:right;">
+
++0.3
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++74.8
+</td>
+
+<td style="text-align:right;">
+
++275.1
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;padding-left: 2em;" indentlevel="1">
+
+Wiley
+</td>
+
+<td style="text-align:left;">
+
+2019–2025
+</td>
+
+<td style="text-align:right;">
+
++308.9
+</td>
+
+<td style="text-align:right;">
+
+-14.5
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++0.0
+</td>
+
+<td style="text-align:right;">
+
++15.4
+</td>
+
+<td style="text-align:right;">
+
++309.8
+</td>
+
+</tr>
+
+</tbody>
+
+<tfoot>
+
+<tr>
+
+<td style="padding: 0; " colspan="100%">
+
+<span style="font-style: italic;">Note: </span>
+</td>
+
+</tr>
+
+<tr>
+
+<td style="padding: 0; " colspan="100%">
+
+<sup></sup> Journals are classified by their OA status: ‘Remained’
+journals kept the same OA status throughout; ‘Flipped’ journals changed
+status once; ‘Entered after base year’ journals appear in the dataset
+only after the first year of the period shown, including new launches,
+journals transferred from another publisher, and journals without
+matched articles in the first year. Flipped journals contribute
+negatively to growth in the OA type they left, and journals whose spend
+declined contribute negatively to growth in their group, so individual
+contributions can exceed the total. For publishers covered across
+2019–2025, totals correspond to the growth rates in Table 2. For De
+Gruyter and OUP (first covered in 2021) and Sage (gold covered
+2019–2024, hybrid 2020–2025), growth is calculated over the period
+shown.
+</td>
+
+</tr>
+
+</tfoot>
+
+</table>
+
+## Listed vs. article-weighted APCs
+
+### Figure 5. Distribution of listed APCs (journal level) and article-weighted APC (article level) for 2025 by OA type, all publishers. Medians are indicated with a dashed line.
+
+![](roara_apc_paper_analysis_files/figure-gfm/fig5-apc-listed-article-weighted-overall-plot-1.png)<!-- -->
 
 (For the published figure, median dots in the legend were edited using
 Adobe Illustrator to match color in the figure)
 
-### Figure 6 and 7. Distribution of listed (journal-level, blue) and paid (article-level, orange) APCs by publishers and OA type, 2025.
+### Figure 6 and 7. Distribution of listed (journal-level, purple) and article-weighted (article-level, orange) APCs by publishers and OA type, 2025.
 
-![](../figures/fig6-top5.svg)
+![](roara_apc_paper_analysis_files/figure-gfm/fig6-print-1.png)<!-- -->
 
-![](../figures/fig7-next9.svg)
+![](roara_apc_paper_analysis_files/figure-gfm/fig7-print-1.png)<!-- -->
 
 (For the published figures, median dots in the legend were edited using
 Adobe Illustrator to match color in the figure)
 
-### Table 3. Median of 2025 APCs listed (journal level) and paid (article level) per OA status per publisher.
+### Table 3. Median of 2025 listed (journal level) and article-weighted (article level) APCs per OA status per publisher.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 
 <caption>
 
-Table 3. Median of 2025 APCs listed (journal level) and paid (article
-level) per OA status per publisher.
+Table 3. Median of 2025 listed (journal level) and article-weighted
+(article level) APCs per OA status per publisher.
 </caption>
 
 <thead>
@@ -1198,7 +2414,7 @@ Listed
 
 <th style="text-align:right;">
 
-Paid
+Aticle-weighted
 </th>
 
 <th style="text-align:right;">
@@ -1208,7 +2424,7 @@ Listed
 
 <th style="text-align:right;">
 
-Paid
+Artilce-weighted
 </th>
 
 </tr>
