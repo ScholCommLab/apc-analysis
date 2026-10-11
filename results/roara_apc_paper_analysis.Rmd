@@ -227,7 +227,7 @@ spend_table_rounded %>%
   knitr::kable(
     col.names = c("Publication year", "Gold", "Hybrid", "Gold", "Hybrid"),
     align = "lrrrr",
-    caption = "Table 1. Estimate of annual APC spend (in millions USD) per OA type for actual APCs paid and adjusted for inflation using CPI Advanced Economies."
+    caption = "Table 1. Estimate of annual APC spend (in millions USD) per OA type unadjusted and adjusted for inflation using CPI Advanced Economies."
   ) %>%
   kable_styling(full_width = FALSE) %>%
   add_header_above(c(
@@ -915,7 +915,105 @@ table2_full %>%
   ))
 ```
 
-## APC listed vs. paid
+## Table 2 Writing: Checking for impact of journal flips
+
+```{r table2-writing-journal-flips, echo=FALSE}
+# Spend per journal-year, adjusted to 2025 USD (same basis as Table 2)
+journal_spend <- journals_pub_counts_apc %>%
+  filter(oa_status %in% c("Gold OA", "Hybrid OA")) %>%
+  mutate(spend_adj = apc_usd * goldDiamondHybrid * to_2025[as.character(apc_year)])
+
+# Comparison window per publisher x OA type
+windows <- journal_spend %>%
+  distinct(publisher, oa_status) %>%
+  mutate(
+    base_year = case_when(
+      publisher %in% c("DE_GRUYTER", "OUP")          ~ 2021,
+      publisher == "SAGE" & oa_status == "Hybrid OA" ~ 2020,
+      TRUE                                           ~ 2019
+    ),
+    end_year = if_else(publisher == "SAGE" & oa_status == "Gold OA", 2024, 2025)
+  )
+
+# Classify each journal by its OA-status trajectory
+trajectories <- journal_spend %>%
+  distinct(issn_l, apc_year, oa_status) %>%
+  arrange(issn_l, apc_year) %>%
+  group_by(issn_l) %>%
+  summarise(
+    first_year   = min(apc_year),
+    first_status = first(oa_status),
+    n_switches   = sum(oa_status != lag(oa_status), na.rm = TRUE),
+    flip_year    = apc_year[which(oa_status != lag(oa_status))[1]],
+    .groups = "drop"
+  ) %>%
+  mutate(trajectory = case_when(
+    n_switches == 0 & first_year > 2019            ~ "Entered after 2019",
+    n_switches == 0 & first_status == "Gold OA"    ~ "Always gold",
+    n_switches == 0 & first_status == "Hybrid OA"  ~ "Always hybrid",
+    n_switches == 1 & first_status == "Hybrid OA"  ~ "Flipped to gold",
+    n_switches == 1 & first_status == "Gold OA"    ~ "Flipped to hybrid",
+    TRUE                                           ~ "Multiple switches"
+  ))
+
+# Decompose growth over each window by journal trajectory
+growth_decomp <- journal_spend %>%
+  inner_join(windows, by = c("publisher", "oa_status")) %>%
+  filter(apc_year == base_year | apc_year == end_year) %>%
+  left_join(trajectories %>% select(issn_l, first_year, first_status, n_switches),
+            by = "issn_l") %>%
+  mutate(
+    period = if_else(apc_year == base_year, "base", "end"),
+    component = case_when(
+      n_switches == 0 & first_year > base_year       ~ "Entered after base year",
+      n_switches == 0                                ~ "Remained",
+      n_switches == 1 & first_status == "Hybrid OA"  ~ "Flipped to gold",
+      n_switches == 1 & first_status == "Gold OA"    ~ "Flipped to hybrid",
+      TRUE                                           ~ "Multiple switches"
+    )
+  ) %>%
+  group_by(publisher, oa_status, base_year, end_year, component, period) %>%
+  summarise(spend = sum(spend_adj, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = period, values_from = spend, values_fill = 0) %>%
+  group_by(publisher, oa_status) %>%
+  mutate(contribution_pp = (end - base) / sum(base) * 100) %>%
+  ungroup()
+
+# Arrange
+supp_decomp <- growth_decomp %>%
+  mutate(period = paste0(base_year, "–", end_year)) %>%
+  select(publisher, oa_status, period, component, contribution_pp) %>%
+  pivot_wider(names_from = component, values_from = contribution_pp, values_fill = 0) %>%
+  mutate(Total = rowSums(across(where(is.numeric)))) %>%
+  select(publisher, oa_status, period,
+         any_of(c("Remained", "Flipped to gold", "Flipped to hybrid",
+                  "Multiple switches", "Entered after base year")),
+         Total) %>%
+  mutate(publisher = clean_label(publisher)) %>%
+  arrange(oa_status, publisher) 
+
+# Print
+n_gold <- sum(supp_decomp$oa_status == "Gold OA")
+
+supp_decomp %>%
+  select(-oa_status) %>%
+  mutate(across(where(is.numeric), ~ sprintf("%+.1f", .x))) %>%
+  knitr::kable(
+    col.names = c("Publisher", "Period", names(.)[-(1:2)]),
+    align = c("l", "l", rep("r", ncol(.) - 2)),
+    caption = "Table 2 Supplement. Contribution to growth in APC spend (adjusted for inflation to 2025 USD using CPI Advanced Economies) per publisher and OA type, by journal trajectory, in percentage points."
+  ) %>%
+  kable_styling(full_width = FALSE) %>%
+  pack_rows("Gold OA", 1, n_gold) %>%
+  pack_rows("Hybrid OA", n_gold + 1, nrow(supp_decomp)) %>%
+  footnote(
+    general = "Journals are classified by their OA status: 'Remained' journals kept the same OA status throughout; 'Flipped' journals changed status once; 'Entered after base year' journals appear in the dataset only after the first year of the period shown, including new launches, journals transferred from another publisher, and journals without matched articles in the first year. Flipped journals contribute negatively to growth in the OA type they left, and journals whose spend declined contribute negatively to growth in their group, so individual contributions can exceed the total. For publishers covered across 2019–2025, totals correspond to the growth rates in Table 2. For De Gruyter and OUP (first covered in 2021) and Sage (gold covered 2019–2024, hybrid 2020–2025), growth is calculated over the period shown.",
+    threeparttable = TRUE
+  )
+
+```
+
+## Listed vs. article-weighted APCs
 
 ```{r data-fig5-6-7, echo=FALSE, include=FALSE}
 # Derive the revenue ranking from the spend data
@@ -939,12 +1037,12 @@ list_data <- df_2025 %>%
   select(publisher, oa_status, apc_usd) %>%
   mutate(type = "List")
 
-# PAID = the realized distribution. One observation per article. $0 journals retained
-paid_data <- df_2025 %>%
+# Article-weighted distribution: One observation per article. $0 journals retained
+article_weighted <- df_2025 %>%
   filter(goldDiamondHybrid > 0) %>%
   uncount(goldDiamondHybrid) %>%
   select(publisher, oa_status, apc_usd) %>%
-  mutate(type = "Paid")
+  mutate(type = "Article-weighted")
 
 # Function clean labels
 clean_pub <- function(x) {
@@ -955,26 +1053,26 @@ clean_pub <- function(x) {
 }
 
 # Join the ranking on the raw publisher strings, then clean
-plot_df <- bind_rows(list_data, paid_data) %>%
+plot_df <- bind_rows(list_data, article_weighted) %>%
   filter(oa_status != "unknown") %>%
   left_join(rev_2025 %>% select(publisher, rev_rank), by = "publisher") %>%
   mutate(
     publisher = clean_pub(publisher),
     group      = if_else(!is.na(rev_rank) & rev_rank <= N_TOP, "Top5", "Next9"),
-    type      = fct_relevel(type, "List", "Paid"),
+    type      = fct_relevel(type, "List", "Article-weighted"),
     facet_lab = paste0(publisher, " \u00b7 ", oa_status)
   )
 ```
 
-### Figure 5. Distribution of the number of journals per listed APC (journal level) and the number of articles per paid APC (article level) for 2025 by OA type, all publishers. Medians are indicated with a dashed line.
+### Figure 5. Distribution of listed APCs (journal level) and article-weighted APC (article level) for 2025 by OA type, all publishers. Medians are indicated with a dashed line.
 
-```{r fig5-apc-listed-paid-overall, echo=FALSE, include=FALSE}
+```{r fig5-apc-listed-article-weighted-overall, echo=FALSE, include=FALSE}
 library(colorspace)
 library(scales)
 library(tidysdm)
 library(ggtext)
 
-# Paid = one row per article, $0 journals retained on both sides.
+# Article-weighted = one row per article, $0 journals retained on both sides.
 
 # Pool across all publishers, one panel per OA status 
 pooled_df <- plot_df %>%
@@ -997,7 +1095,7 @@ pooled_meds <- pooled_df %>%
   )
 ```
 
-```{r fig5-apc-listed-paid-overall-plot, echo=FALSE, fig.dpi=300}
+```{r fig5-apc-listed-article-weighted-overall-plot, echo=FALSE, fig.dpi=300}
 ggplot(pooled_df, aes(x = "Profile", y = apc_usd, fill = type)) +
   geom_split_violin(width = 0.7, alpha = 0.9, colour = "grey25",
                     linewidth = 0.3, adjust = 1.4) +
@@ -1029,10 +1127,10 @@ ggplot(pooled_df, aes(x = "Profile", y = apc_usd, fill = type)) +
   ) +
   coord_cartesian(ylim = c(0, 13000)) +
   scale_x_discrete(expand = expansion(mult = 0.85)) +
-  scale_fill_manual(values = c("List" = "#541F3F", "Paid" = "#A85A47")) +
+  scale_fill_manual(values = c("List" = "#541F3F", "Article-weighted" = "#A85A47")) +
   labs(
-    title    = "Listed and paid APCs (in USD), 2025: all publishers pooled",
-    subtitle = "The median article costs more than the median journal in both gold and hybrid OA.",
+    title    = "Listed and article-weighted APCs (in USD), 2025: all publishers pooled",
+    subtitle = "The median article is priced higher than the median journal in both gold and hybrid OA.",
     x = NULL, y = NULL, fill = NULL,
     caption  = "Left half: listed prices, one per journal. Right half: weighted by article volume. Dashed lines mark medians."
   ) +
@@ -1066,7 +1164,7 @@ ggsave("figures/fig5-pooled.svg", width = 8, height = 5.5, dpi = 600, bg = "whit
 
 (For the published figure, median dots in the legend were edited using Adobe Illustrator to match color in the figure)
 
-### Figure 6 and 7. Distribution of listed (journal-level, blue) and paid (article-level, orange) APCs by publishers and OA type, 2025.
+### Figure 6 and 7. Distribution of listed (journal-level, purple) and article-weighted (article-level, orange) APCs by publishers and OA type, 2025.
 
 ```{r function-fig6-7, echo=FALSE}
 make_fig6_7 <- function(group_code, levels_vec, title, subtitle, caption,
@@ -1083,11 +1181,11 @@ make_fig6_7 <- function(group_code, levels_vec, title, subtitle, caption,
     mutate(facet_lab = factor(facet_lab, levels = levels_vec))
 
   meds <- keep %>%
-    select(facet_lab, list_med, paid_med) %>%
-    pivot_longer(c(list_med, paid_med), names_to = "type", values_to = "median_val") %>%
+    select(facet_lab, list_med, article_weighted_med) %>%
+    pivot_longer(c(list_med, article_weighted_med), names_to = "type", values_to = "median_val") %>%
     mutate(
-      type      = if_else(type == "list_med", "List", "Paid"),
-      type      = fct_relevel(type, "List", "Paid"),
+      type      = if_else(type == "list_med", "List", "Aritcle-weighted"),
+      type      = fct_relevel(type, "List", "Article-weighted"),
       pt_fill   = if_else(type == "List",
                         lighten("#541F3F", 0.45),
                         lighten("#A85A47", 0.45)),
@@ -1111,7 +1209,7 @@ make_fig6_7 <- function(group_code, levels_vec, title, subtitle, caption,
       expand = expansion(mult = c(0.05, 0.08))
     ) +
     scale_x_discrete(expand = expansion(mult = 0.6)) +
-    scale_fill_manual(values = c("List" = "#541F3F", "Paid" = "#A85A47")) +
+    scale_fill_manual(values = c("List" = "#541F3F", "Article-weighted" = "#A85A47")) +
     labs(title = title, subtitle = subtitle, caption = caption,
          x = NULL, y = NULL, fill = NULL) +
     theme_minimal(base_size = 12) +
@@ -1146,30 +1244,30 @@ make_fig6_7 <- function(group_code, levels_vec, title, subtitle, caption,
 }
 ```
 
-```{r fig6-7-apc-listed-paid-by-publisher, include=FALSE}
+```{r fig6-7-apc-listed-article-weighted-by-publisher, include=FALSE}
 library(scales)
 library(tidysdm)
 library(ggtext)
 
-# Fig 6 & 7: Listed vs paid APCs, split by publisher revenue group
+# Fig 6 & 7: Listed vs article-weighted APCs, split by publisher revenue group
 
 # Shift size and direction , per publisher x OA status cell
 shift_df <- plot_df %>%
   group_by(publisher, oa_status, facet_lab, group, rev_rank) %>%
   summarize(
     list_med = median(apc_usd[type == "List"]),
-    paid_med = median(apc_usd[type == "Paid"]),
+    article_weighted_med = median(apc_usd[type == "Article-weighted"]),
     n_prices = n_distinct(apc_usd[type == "List"]),
-    share_at = mean(apc_usd[type == "Paid"] == median(apc_usd[type == "List"])),
+    share_at = mean(apc_usd[type == "Article-weighted"] == median(apc_usd[type == "List"])),
     .groups  = "drop"
   ) %>%
   filter(
-    !is.na(paid_med),
+    !is.na(article_weighted_med),
     # SAGE Gold 2025 was not collected; the journals that do appear were picked up incidentally via other publishers' APC lists.
     !(publisher == "Sage" & oa_status == "Gold OA")
   ) %>%
   mutate(
-    shift_usd = paid_med - list_med,
+    shift_usd = article_weighted_med - list_med,
     shift_direction = case_when(
       shift_usd > 0 ~ "up",
       shift_usd < 0 ~ "down",
@@ -1185,14 +1283,14 @@ cat("\nTop5, all cells:\n")
 shift_df %>%
   filter(group == "Top5") %>%
   arrange(rev_rank, oa_status) %>%
-  select(publisher, oa_status, list_med, paid_med, shift_usd, shift_direction) %>%
+  select(publisher, oa_status, list_med, article_weighted_med, shift_usd, shift_direction) %>%
   print(n = Inf)
 
 cat("\nNext9, by shift direction:\n")
 shift_df %>%
   filter(group == "small") %>%
   arrange(shift_direction, desc(shift_usd)) %>%
-  select(publisher, oa_status, list_med, paid_med, shift_usd, shift_direction) %>%
+  select(publisher, oa_status, list_med, article_weighted_med, shift_usd, shift_direction) %>%
   print(n = Inf)
 
 # Panel ordering
@@ -1238,8 +1336,8 @@ print(max_by_panel, n = Inf)
 # Plot
 p_top5 <- make_fig6_7(
   "Top5", lev_top5,
-  "Listed and paid APCs (in USD), 2025: Top 5 publishers by APC spend",
-  "In every case the median article costs more than the median journal: most articles appear in the more expensive part of the portfolio.",
+  "Listed and article-weighted APCs (in USD), 2025: Top 5 publishers by APC spend",
+  "In every case the median article is priced higher than the median journal: most articles appear in the more expensive part of the portfolio.",
   "Panels ordered by size of the gap. Left half: listed prices, one per journal. Right half: weighted by article volume. Points mark medians. Journals above $9,000 not shown: 20 at Elsevier (1.1% of hybrid titles, 0.8% of hybrid article volume) and 39 at Springer Nature (1.9% of hybrid titles, 4.8% of hybrid volume).",
   ncol_facets = 4,
   y_max = 9000
@@ -1247,7 +1345,7 @@ p_top5 <- make_fig6_7(
 
 p_next9 <- make_fig6_7(
   "Next9", lev_next9,
-  "Listed and paid APCs (in USD), 2025: Next 9 publishers",
+  "Listed and article-weighted APCs (in USD), 2025: Next 9 publishers",
   "Article volume shifts up the price list at some publishers, tracks it at others, and shifts down at the rest.",
   "Panels grouped by direction of shift, then ordered by size of the gap. Left half: listed prices, one per journal. Right half: weighted by article volume. Points mark medians. Four journals above $6,000 not shown (3 hybrid at OUP, 1 gold at PLOS; under 1% of article volume at each).",
   ncol_facets = 4,
@@ -1270,13 +1368,13 @@ p_next9
 
 (For the published figures, median dots in the legend were edited using Adobe Illustrator to match color in the figure)
 
-### Table 3. Median of 2025 APCs listed (journal level) and paid (article level) per OA status per publisher.
+### Table 3. Median of 2025 listed (journal level) and article-weighted (article level) APCs per OA status per publisher.
 
-```{r table3-apc-listed-paid, echo=FALSE}
+```{r table3-apc-listed-article-weighted, echo=FALSE}
 library(kableExtra)
 library(scales)
 
-# Assumes plot_df is already built (List = journal level, Paid = article level,
+# Assumes plot_df is already built (List = journal level, Article-weighted = article level,
 # $0 journals retained on both sides).
 
 # Per-publisher medians
@@ -1294,13 +1392,13 @@ tbl_all <- plot_df %>%
 table3 <- bind_rows(tbl_all, tbl_pub) %>%
   mutate(
     oa    = if_else(str_detect(oa_status, "Gold"), "gold", "hybrid"),
-    col   = paste0(oa, "_", tolower(type))
+    col = paste0(oa, "_", if_else(type == "List", "list", "article_weighted"))
   ) %>%
   select(publisher, col, med) %>%
   pivot_wider(names_from = col, values_from = med) %>%
   select(publisher,
-         gold_list, gold_paid,
-         hybrid_list, hybrid_paid) %>%
+         gold_list, gold_article_weighted,
+         hybrid_list, hybrid_article_weighted) %>%
   # display formatting: dollars, "n/a" where the publisher has no such cell
   mutate(across(-publisher,
                 ~ if_else(is.na(.x), "n/a", label_dollar(accuracy = 1)(.x)))) %>%
@@ -1312,9 +1410,9 @@ write_csv(table3, "table3_listed_vs_paid_medians.csv")
 # Print
 table3 %>%
   knitr::kable(
-    col.names = c("Publisher", "Listed", "Paid", "Listed", "Paid"),
+    col.names = c("Publisher", "Listed", "Aticle-weighted", "Listed", "Artilce-weighted"),
     align = "lrrrr",
-    caption = "Table 3. Median of 2025 APCs listed (journal level) and paid (article level) per OA status per publisher."
+    caption = "Table 3. Median of 2025 listed (journal level) and article-weighted (article level) APCs per OA status per publisher."
   ) %>%
   kable_styling(full_width = FALSE) %>%
   add_header_above(c(
