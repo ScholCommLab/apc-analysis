@@ -69,12 +69,14 @@ Hybrid OA journal-year combinations with known APCs
 
 # Results
 
+### Table 1. Estimate of annual APC spend (in millions USD) per OA type in nominal terms and adjusted for inflation using CPI Advanced Economies.
+
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 
 <caption>
 
-Table 1. Estimate of annual APC spend (in millions USD) per OA type
-unadjusted and adjusted for inflation using CPI Advanced Economies.
+Table 1. Estimate of annual APC spend (in millions USD) per OA type in
+nominal terms and adjusted for inflation using CPI Advanced Economies.
 </caption>
 
 <thead>
@@ -89,7 +91,7 @@ unadjusted and adjusted for inflation using CPI Advanced Economies.
 
 <div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
 
-Spend estimate based on APCs in USD (actual list price)
+Spend estimate based on APCs in USD (nominal list price)
 
 </div>
 
@@ -380,7 +382,7 @@ NA
 
 ### Figure 2. Estimate of annual APC spend (in USD) per OA type, adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](../figures/fig2_apc_spend_chicklet.png)
+![](roara_apc_paper_analysis_files/figure-gfm/fig2-apc-spend-gold-hybrid-chicklet-1.png)<!-- -->
 
 ### Numbers for plot description
 
@@ -404,7 +406,7 @@ Growth 2019 → 2025, per OA type
 
 ### Figure 3. Estimate of annual APC spend (in USD) by publisher adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](../figures/fig3_publishers_apc_spend_total.svg)
+![](roara_apc_paper_analysis_files/figure-gfm/fig3-publishers-apc-spend-1.png)<!-- -->
 
 (For the published figure, label positioning was adjusted with Adobe
 Illustrator)
@@ -445,22 +447,22 @@ IEEE spend growth, 2019–2025
     ##   <dbl> <dbl>      <dbl>
     ## 1  37.8  47.1       24.6
 
-### Figure 4. Estimate of annual APC revenue (in USD) by publisher and OA type adjusted for inflation to 2025 USD using CPI Advanced Economies.
+### Figure 4. Estimate of annual APC spend (in USD) by publisher and OA type adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](../figures/fig4_apc_spend_publisher_oa_type.png)
+![](roara_apc_paper_analysis_files/figure-gfm/fig4-publishers-apc-spend-oa-type-plot-1.png)<!-- -->
 
     ## png 
     ##   2
 
-### Table 2. Growth of article output and APC spend (adjusted for inflation to 2025 USD using CPI Advanced Economies) from 2019 to 2025 per publisher and OA type.
+### Table 2. Growth of article output and estimated APC spend (adjusted for inflation to 2025 USD using CPI Advanced Economies) from 2019 to 2025 per publisher and OA type.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 
 <caption>
 
-Table 2. Growth of article output and APC spend (adjusted for inflation
-to 2025 USD using CPI Advanced Economies) from 2019 to 2025 per
-publisher and OA type.
+Table 2. Growth of article output and estimated APC spend (adjusted for
+inflation to 2025 USD using CPI Advanced Economies) from 2019 to 2025
+per publisher and OA type.
 </caption>
 
 <thead>
@@ -2342,32 +2344,33 @@ shown.
 
 </table>
 
-## Listed vs. article-weighted APCs
+## Listed vs. paid APCs
 
-### Figure 5. Distribution of listed APCs (journal level) and article-weighted APC (article level) for 2025 by OA type, all publishers. Medians are indicated with a dashed line.
+### Figure 5. Distribution of list-price APCs (journal level) and list-price APC (article level) for 2025 by OA type, all publishers. Medians are indicated with a dashed line.
 
-![](../figures/fig5-pooled.svg)
+![](roara_apc_paper_analysis_files/figure-gfm/fig5-apc-listed-paid-overall-plot-1.png)<!-- -->
 
 (For the published figure, median dots in the legend were edited using
 Adobe Illustrator to match color in the figure)
 
-### Figure 6 and 7. Distribution of listed (journal-level, purple) and article-weighted (article-level, orange) APCs by publishers and OA type, 2025.
+### Figure 6 and 7. Distribution of listed (journal-level, purple) and paid (article-level, i.e., list prices weighted by article volume, orange) APCs by publishers and OA type, 2025.
 
-![](../figures/fig6-top5.svg)
+![](roara_apc_paper_analysis_files/figure-gfm/fig6-print-1.png)<!-- -->
 
-![](../figures/fig7-next9.svg)
+![](roara_apc_paper_analysis_files/figure-gfm/fig7-print-1.png)<!-- -->
 
 (For the published figures, median dots in the legend were edited using
 Adobe Illustrator to match color in the figure)
 
-### Table 3. Median of 2025 listed (journal level) and article-weighted (article level) APCs per OA status per publisher.
+### Table 3. Median of 2025 list-price APCs (journal level) and paid APCs (article level, i.e., list prices weighted by article volume) per OA status per publisher.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 
 <caption>
 
-Table 3. Median of 2025 listed (journal level) and article-weighted
-(article level) APCs per OA status per publisher.
+Table 3. Median of 2025 list-price APCs (journal level) and paid APCs
+(article level, i.e., list prices weighted by article volume) per OA
+status per publisher.
 </caption>
 
 <thead>
@@ -2414,7 +2417,7 @@ Listed
 
 <th style="text-align:right;">
 
-Aticle-weighted
+Paid
 </th>
 
 <th style="text-align:right;">
@@ -2424,7 +2427,7 @@ Listed
 
 <th style="text-align:right;">
 
-Artilce-weighted
+Paid
 </th>
 
 </tr>
