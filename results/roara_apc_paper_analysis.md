@@ -382,7 +382,7 @@ NA
 
 ### Figure 2. Estimate of annual APC spend (in USD) per OA type, adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](roara_apc_paper_analysis_files/figure-gfm/fig2-apc-spend-gold-hybrid-chicklet-1.png)<!-- -->
+![](../figures/fig2_apc_spend_chicklet.png)
 
 ### Numbers for plot description
 
@@ -406,7 +406,7 @@ Growth 2019 → 2025, per OA type
 
 ### Figure 3. Estimate of annual APC spend (in USD) by publisher adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](roara_apc_paper_analysis_files/figure-gfm/fig3-publishers-apc-spend-1.png)<!-- -->
+![](../figures/fig3_publishers_apc_spend_total.svg)
 
 (For the published figure, label positioning was adjusted with Adobe
 Illustrator)
@@ -449,7 +449,7 @@ IEEE spend growth, 2019–2025
 
 ### Figure 4. Estimate of annual APC spend (in USD) by publisher and OA type adjusted for inflation to 2025 USD using CPI Advanced Economies.
 
-![](roara_apc_paper_analysis_files/figure-gfm/fig4-publishers-apc-spend-oa-type-plot-1.png)<!-- -->
+![](../figures/fig4_apc_spend_publisher_oa_type.png)
 
     ## png 
     ##   2
@@ -2348,16 +2348,16 @@ shown.
 
 ### Figure 5. Distribution of list-price APCs (journal level) and list-price APC (article level) for 2025 by OA type, all publishers. Medians are indicated with a dashed line.
 
-![](roara_apc_paper_analysis_files/figure-gfm/fig5-apc-listed-paid-overall-plot-1.png)<!-- -->
+![](../figures/fig5-pooled.svg)
 
 (For the published figure, median dots in the legend were edited using
 Adobe Illustrator to match color in the figure)
 
 ### Figure 6 and 7. Distribution of listed (journal-level, purple) and paid (article-level, i.e., list prices weighted by article volume, orange) APCs by publishers and OA type, 2025.
 
-![](roara_apc_paper_analysis_files/figure-gfm/fig6-print-1.png)<!-- -->
+![](../figures/fig6-top5.svg)
 
-![](roara_apc_paper_analysis_files/figure-gfm/fig7-print-1.png)<!-- -->
+![](../figures/fig7-next9.svg)
 
 (For the published figures, median dots in the legend were edited using
 Adobe Illustrator to match color in the figure)
