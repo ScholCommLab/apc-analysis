@@ -27,13 +27,13 @@ counterparts in the main text.
     ## quartz_off_screen 
     ##                 2
 
-### Table S2.2 Growth of article output and APC spend from 2019 to 2025 per publisher and OA type.
+### Table S2.2 Growth of article output and estimated APC spend from 2019 to 2025 per publisher and OA type.
 
 <table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 
 <caption>
 
-Table S2.2 Growth of article output and APC spend from 2019 to 2025 per
+Table S2.2 Growth of article output and estimated APC spend from 2019 to 2025 per
 publisher and OA type.
 </caption>
 
