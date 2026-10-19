@@ -500,7 +500,7 @@ dev.off()
 
 ```
 
-### Table S2.2 Growth of article output and APC spend from 2019 to 2025 per publisher and OA type.
+### Table S2.2 Growth of article output and estimated APC spend from 2019 to 2025 per publisher and OA type.
 
 ```{r tableS2-2-spend-growth-not-adjusted, echo=FALSE}
 library(kableExtra)
@@ -612,7 +612,7 @@ table2_full_not_adjusted %>%
     col.names = c("Publisher", "Gold+Hybrid", "Gold", "Hybrid",
                   "Gold+Hybrid", "Gold", "Hybrid"),
     align = "lrrrrrr",
-    caption = "Table S2.2 Growth of article output and APC spend from 2019 to 2025 per publisher and OA type."
+    caption = "Table S2.2 Growth of article output and estimated APC spend from 2019 to 2025 per publisher and OA type."
   ) %>%
   kable_styling(full_width = FALSE) %>%
   add_header_above(c(
